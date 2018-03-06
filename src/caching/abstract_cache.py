@@ -16,6 +16,7 @@ class AbstractCache(object):
     __cache_size = 0
     __free_cache = 0
     __saved_objects = None
+    __last_req_time = 0
 
     # endregion
 
@@ -37,6 +38,7 @@ class AbstractCache(object):
         self.__cache_size = size
         self.__free_cache = size
         self.__saved_objects = {}
+        self.__last_req_time = -1
 
     # endregion
 
@@ -50,7 +52,7 @@ class AbstractCache(object):
         """
         Method to store an object in cache.
         :param id_: ID of the object
-        :param size: size of the object
+        :param size: Size of the object
         :raises NotEnoughStorage: If object size is larger than free storage of the cache
         :raises AlreadyStoredError: If object is already present in the cache
         """
@@ -92,6 +94,26 @@ class AbstractCache(object):
         """
         return self.__free_cache
 
+    def _process_cache_hit(self, id_, size, time):
+        """
+        Implement here all required to process cache hit.
+        All subclasses need to implement this method.
+        :param id_: ID of the object
+        :param size: Size of the object
+        :param time: Time of the request
+        """
+        raise NotImplementedError('Subclasses of AbstractCache need to implement __process_cache_hit')
+
+    def _process_cache_miss(self, id_, size, time):
+        """
+        Implement here all required to process cache miss.
+        All subclasses need to implement this method.
+        :param id_: ID of the object
+        :param size: Size of the object
+        :param time: Time of the request
+        """
+        raise NotImplementedError('Subclasses of AbstractCache need to implement __process_cache_miss')
+
     # endregion
 
     # region Public methods
@@ -99,14 +121,22 @@ class AbstractCache(object):
     def request_object(self, id_, size, time):
         """
         Method to request an object. Can be already stored in the cache or not.
-        All subclasses need to implement this method.
         :param id_: ID of the object
-        :param size: size of the object
+        :param size: Size of the object
         :param time: Time of the request
         :return: bool -> True if cache hit, False if not
-        :raises NotImplementedError: if the method is not implemented is subclass
+        :raises TimeOrderError: If the object is requested with less time than previous object (in the past)
         """
-        raise NotImplementedError('Subclasses of AbstractCache need to implement request_object')
+        if time > self.__last_req_time:
+            self.__last_req_time = time
+            if self._is_cached(id_):
+                self._process_cache_hit(id_, size, time)
+                return True
+            else:
+                self._process_cache_miss(id_, size, time)
+                return False
+        else:
+            raise TimeOrderError('Wrong request time order: {0} <= {1}'.format(time, self.__last_req_time))
 
     # endregion
 
@@ -120,4 +150,12 @@ class NotEnoughStorage(Exception):
 
 
 class AlreadyStoredError(Exception):
+    pass
+
+
+class TimeOrderError(Exception):
+    pass
+
+
+class ObjectTooLargeError(Exception):
     pass
