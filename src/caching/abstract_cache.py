@@ -155,7 +155,3 @@ class AlreadyStoredError(Exception):
 
 class TimeOrderError(Exception):
     pass
-
-
-class ObjectTooLargeError(Exception):
-    pass

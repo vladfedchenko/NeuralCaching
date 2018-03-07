@@ -104,16 +104,18 @@ class LFUCache(AbstractCache):
         self.__update_counters(id_)
         curr_freq = self.__get_count(id_)
 
-        c, i = self.__hit_queue.get()  # counters are not updated in queue, need to compensate for it
-        while self.__hit_map[i] != c:
-            self.__hit_queue.put((self.__hit_map[i], i))
-            c, i = self.__hit_queue.get()
+        if self._free_cache < size and not self.__hit_queue.empty():
+            c, i = self.__hit_queue.get()  # counters are not updated in queue, need to compensate for it
+            while self.__hit_map[i] != c:
+                self.__hit_queue.put((self.__hit_map[i], i))
+                c, i = self.__hit_queue.get()
 
-        self._remove_object(i)  # removing old from cache
-        del self.__hit_map[i]
+            self._remove_object(i)  # removing old from cache
+            del self.__hit_map[i]
 
-        self._store_object(id_)  # storing new to cache
+        self._store_object(id_, size)  # storing new to cache
         self.__hit_map[id_] = curr_freq
+        self.__hit_queue.put((curr_freq, id_))
 
     # endregion
 

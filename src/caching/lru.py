@@ -1,7 +1,7 @@
 """
 This module contains the implementation of LRU cache.
 """
-from caching.abstract_cache import AbstractCache, ObjectTooLargeError
+from caching.abstract_cache import AbstractCache, NotEnoughStorage
 from queue import PriorityQueue
 
 
@@ -66,7 +66,7 @@ class LRUCache(AbstractCache):
 
         while free < size:
             if self.__access_queue.empty():
-                raise ObjectTooLargeError(f'Cache cannot hold object of size {size}')
+                raise NotEnoughStorage(f'Cache cannot hold object of size {size}')
 
             t, i = self.__access_queue.get()
             if self.__last_access_map[i] > t:  # object has been requested after it was added to queue
