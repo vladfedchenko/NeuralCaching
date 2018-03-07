@@ -2,7 +2,6 @@
 This module contains the implementation of LRU cache.
 """
 from caching.abstract_cache import AbstractCache, NotEnoughStorage
-from queue import PriorityQueue
 
 
 class LRUCache(AbstractCache):

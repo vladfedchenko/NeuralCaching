@@ -3,7 +3,7 @@ This module contains the definition of AbstractCache class and related errors.
 """
 
 
-class AbstractCache(object):
+class AbstractCache:
     """
     AbstractCache encapsulates basic cache operations like save object, remove object, check is object is stored.
     It also manages cache storage (size, free storage).
