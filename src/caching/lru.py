@@ -2,6 +2,7 @@
 This module contains the implementation of LRU cache.
 """
 from caching.abstract_cache import AbstractCache, NotEnoughStorage
+from helpers import PriorityQueueUniqueUpdatable
 
 
 class LRUCache(AbstractCache):
@@ -12,7 +13,6 @@ class LRUCache(AbstractCache):
 
     # region Private variables
 
-    __last_access_map = None
     __access_queue = None
 
     # endregion
@@ -33,8 +33,7 @@ class LRUCache(AbstractCache):
         :param size: Size of cache
         """
         super().__init__(size)
-        self.__last_access_map = {}
-        self.__access_queue = PriorityQueue()
+        self.__access_queue = PriorityQueueUniqueUpdatable()
 
     # endregion
 
@@ -51,7 +50,7 @@ class LRUCache(AbstractCache):
         :param size: Size of the object
         :param time: Time of the request
         """
-        self.__last_access_map[id_] = time
+        self.__access_queue.update((time, id_))
 
     def _process_cache_miss(self, id_, size, time):
         """
@@ -67,16 +66,10 @@ class LRUCache(AbstractCache):
             if self.__access_queue.empty():
                 raise NotEnoughStorage(f'Cache cannot hold object of size {size}')
 
-            t, i = self.__access_queue.get()
-            if self.__last_access_map[i] > t:  # object has been requested after it was added to queue
-                self.__access_queue.put((self.__last_access_map[i], i))
-            else:
-                self._remove_object(i)
-                del self.__last_access_map[i]
-
+            _, i = self.__access_queue.get()
+            self._remove_object(i)
             free = self._free_cache
 
-        self.__last_access_map[id_] = time
         self.__access_queue.put((time, id_))
         self._store_object(id_, size)
 

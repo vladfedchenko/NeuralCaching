@@ -37,6 +37,13 @@ class PriorityQueueUniqueUpdatable:
 
     # region Private methods
 
+    def __len__(self):
+        """
+        Length of the queue.
+        :return: int -> Length of the queue.
+        """
+        return self.__priority_queue.qsize()
+
     # endregion
 
     # region Protected methods
@@ -69,13 +76,24 @@ class PriorityQueueUniqueUpdatable:
         return k, v
 
     def update(self, kv):
+        """
+        To update the priority of some item. If the item is not present - it will be inserted into the queue.
+        :param kv: Key-value tuple. Key determines the priority.
+        """
         if not kv[1] in self.__access_map:
             self.put(kv)
         else:
             self.__access_map[kv[1]] = kv[0]
 
+    def empty(self):
+        """
+        Check if the queue is empty.
+        :return: bool -> True if empty, False otherwise.
+        """
+        return self.__priority_queue.empty()
+
     # endregion
 
 
-def RepeatingValueError(Exception):
+class RepeatingValueError(Exception):
     pass
