@@ -2,7 +2,7 @@
 This module contains the implementation of LRU cache.
 """
 from caching.abstract_cache import AbstractCache, NotEnoughStorage
-from helpers import PriorityQueueUniqueUpdatable
+from helpers.collections import LRUQueue
 
 
 class LRUCache(AbstractCache):
@@ -30,10 +30,10 @@ class LRUCache(AbstractCache):
     def __init__(self, size):
         """
         Construct a new LRUCache object.
-        :param size: Size of cache
+        :param size: Size of cache.
         """
         super().__init__(size)
-        self.__access_queue = PriorityQueueUniqueUpdatable()
+        self.__access_queue = LRUQueue()
 
     # endregion
 
@@ -46,19 +46,19 @@ class LRUCache(AbstractCache):
     def _process_cache_hit(self, id_, size, time):
         """
         Only update last access time for cached objects.
-        :param id_: ID of the object
-        :param size: Size of the object
-        :param time: Time of the request
+        :param id_: ID of the object.
+        :param size: Size of the object.
+        :param time: Time of the request.
         """
-        self.__access_queue.update((time, id_))
+        self.__access_queue.update(id_)
 
     def _process_cache_miss(self, id_, size, time):
         """
         Remove oldest accessed object (LRU policy). Store requested object.
-        :param id_: ID of the object
-        :param size: Size of the object
-        :param time: Time of the request
-        :raises ObjectTooLargeError: If the object is too large to be stored in the cache
+        :param id_: ID of the object.
+        :param size: Size of the object.
+        :param time: Time of the request.
+        :raises ObjectTooLargeError: If the object is too large to be stored in the cache.
         """
         free = self._free_cache
 
@@ -66,11 +66,11 @@ class LRUCache(AbstractCache):
             if self.__access_queue.empty():
                 raise NotEnoughStorage(f'Cache cannot hold object of size {size}')
 
-            _, i = self.__access_queue.get()
+            i = self.__access_queue.pop()
             self._remove_object(i)
             free = self._free_cache
 
-        self.__access_queue.put((time, id_))
+        self.__access_queue.put(id_)
         self._store_object(id_, size)
 
     # endregion

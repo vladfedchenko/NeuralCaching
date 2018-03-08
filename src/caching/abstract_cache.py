@@ -33,7 +33,7 @@ class AbstractCache:
     def __init__(self, size):
         """
         Construct a new AbstractCache object.
-        :param size: size of cache
+        :param size: size of cache.
         """
         self.__cache_size = size
         self.__free_cache = size
@@ -51,10 +51,10 @@ class AbstractCache:
     def _store_object(self, id_, size):
         """
         Method to store an object in cache.
-        :param id_: ID of the object
-        :param size: Size of the object
-        :raises NotEnoughStorage: If object size is larger than free storage of the cache
-        :raises AlreadyStoredError: If object is already present in the cache
+        :param id_: ID of the object.
+        :param size: Size of the object.
+        :raises NotEnoughStorage: If object size is larger than free storage of the cache.
+        :raises AlreadyStoredError: If object is already present in the cache.
         """
         if id_ not in self.__saved_objects:
             if self.__free_cache >= size:
@@ -68,8 +68,8 @@ class AbstractCache:
     def _remove_object(self, id_):
         """
         Remove object from the cache.
-        :param id_: ID of the object
-        :raises ObjectNotSavedError: If the object is not stored in the cache
+        :param id_: ID of the object.
+        :raises ObjectNotSavedError: If the object is not stored in the cache.
         """
         if id_ in self.__saved_objects:
             size = self.__saved_objects[id_]
@@ -81,8 +81,8 @@ class AbstractCache:
     def _is_cached(self, id_):
         """
         Check if object is cached.
-        :param id_: ID of the object
-        :return: bool -> True is object is cached, False otherwise
+        :param id_: ID of the object.
+        :return: bool -> True is object is cached, False otherwise.
         """
         return id_ in self.__saved_objects
 
@@ -90,7 +90,7 @@ class AbstractCache:
     def _free_cache(self):
         """
         Returns free cache size.
-        :return: int -> Free cache size
+        :return: int -> Free cache size.
         """
         return self.__free_cache
 
@@ -98,9 +98,9 @@ class AbstractCache:
         """
         Implement here all required to process cache hit.
         All subclasses need to implement this method.
-        :param id_: ID of the object
-        :param size: Size of the object
-        :param time: Time of the request
+        :param id_: ID of the object.
+        :param size: Size of the object.
+        :param time: Time of the request.
         """
         raise NotImplementedError('Subclasses of AbstractCache need to implement __process_cache_hit')
 
@@ -108,9 +108,9 @@ class AbstractCache:
         """
         Implement here all required to process cache miss.
         All subclasses need to implement this method.
-        :param id_: ID of the object
-        :param size: Size of the object
-        :param time: Time of the request
+        :param id_: ID of the object.
+        :param size: Size of the object.
+        :param time: Time of the request.
         """
         raise NotImplementedError('Subclasses of AbstractCache need to implement __process_cache_miss')
 
@@ -121,11 +121,11 @@ class AbstractCache:
     def request_object(self, id_, size, time):
         """
         Method to request an object. Can be already stored in the cache or not.
-        :param id_: ID of the object
-        :param size: Size of the object
-        :param time: Time of the request
-        :return: bool -> True if cache hit, False if not
-        :raises TimeOrderError: If the object is requested with less time than previous object (in the past)
+        :param id_: ID of the object.
+        :param size: Size of the object.
+        :param time: Time of the request.
+        :return: bool -> True if cache hit, False if not.
+        :raises TimeOrderError: If the object is requested with less time than previous object (in the past).
         """
         if time > self.__last_req_time:
             self.__last_req_time = time
@@ -141,17 +141,25 @@ class AbstractCache:
     # endregion
 
 
-class ObjectNotSavedError(Exception):
+class CachingError(Exception):
     pass
 
 
-class NotEnoughStorage(Exception):
+class ObjectNotSavedError(CachingError):
     pass
 
 
-class AlreadyStoredError(Exception):
+class NotEnoughStorage(CachingError):
     pass
 
 
-class TimeOrderError(Exception):
+class AlreadyStoredError(CachingError):
+    pass
+
+
+class TimeOrderError(CachingError):
+    pass
+
+
+class CachingObjectError(CachingError):
     pass

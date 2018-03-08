@@ -33,8 +33,8 @@ class LFUCache(AbstractCache):
     def __init__(self, size, count_min_cells=100, hash_func_num=10):
         """
         Construct a new LFUCache object.
-        :param size: Size of cache
-        :param count_min_cells: Number of cells for count min
+        :param size: Size of cache.
+        :param count_min_cells: Number of cells for count min.
         """
         super().__init__(size)
         self.__count_min_cells = count_min_cells
@@ -53,7 +53,7 @@ class LFUCache(AbstractCache):
     def __update_counters(self, id_):
         """
         Update counters of count-min sketch.
-        :param id_: ID of the object
+        :param id_: ID of the object.
         """
         for hash_add in self.__hash_additions:
             hash_key = hash_add + str(id_)
@@ -64,8 +64,8 @@ class LFUCache(AbstractCache):
     def __get_count(self, id_):
         """
         Get access count using count-min sketch
-        :param id_: ID of the object
-        :return: Estimated hit count
+        :param id_: ID of the object.
+        :return: Estimated hit count.
         """
         indices = []
         for hash_add in self.__hash_additions:
@@ -84,9 +84,9 @@ class LFUCache(AbstractCache):
     def _process_cache_hit(self, id_, size, time):
         """
         If hit - update occurrence counters. Update hit map.
-        :param id_: ID of the object
-        :param size: Size of the object
-        :param time: Time of the request
+        :param id_: ID of the object.
+        :param size: Size of the object.
+        :param time: Time of the request.
         """
         self.__update_counters(id_)
         curr_freq = self.__get_count(id_)
@@ -97,9 +97,9 @@ class LFUCache(AbstractCache):
         Remove least frequently used object (LFU policy).
         Update counter for current object.
         Store requested object.
-        :param id_: ID of the object
-        :param size: Size of the object
-        :param time: Time of the request
+        :param id_: ID of the object.
+        :param size: Size of the object.
+        :param time: Time of the request.
         """
         self.__update_counters(id_)
         curr_freq = self.__get_count(id_)
