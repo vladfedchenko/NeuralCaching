@@ -8,7 +8,10 @@ from queue import PriorityQueue
 
 
 class LFUCache(AbstractCache):
-
+    """
+    LFUCache implements cache with Least Frequently Used policy.
+    Inherits AbstractCache.
+    """
     # region Private variables
 
     __count_min_cells = 0
