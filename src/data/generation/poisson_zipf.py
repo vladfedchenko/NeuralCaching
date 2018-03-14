@@ -14,6 +14,7 @@ class PoissonZipfGenerator(AbstractGenerator):
     """
     # region Private variables
 
+    __max_id = 0
     __poisson_lam = 0.0
     __zipf_param = 0.0
     __time_passed = 0
@@ -30,12 +31,14 @@ class PoissonZipfGenerator(AbstractGenerator):
 
     # region Constructors
 
-    def __init__(self, poisson_lam: float=10, zipf_param: float=1.5):
+    def __init__(self, max_id: int=100, poisson_lam: float=10, zipf_param: float=1.5):
         """
         Construct a new PoissonZipfGenerator object.
+        :param max_id: Maximum ID of the object.
         :param poisson_lam: Poisson distribution parameter.
         :param zipf_param: Zipf distribution parameter.
         """
+        self.__max_id = max_id
         self.__poisson_lam = poisson_lam
         self.__zipf_param = zipf_param
         self.__time_passed = 0
@@ -57,8 +60,10 @@ class PoissonZipfGenerator(AbstractGenerator):
         Returns next generated item.
         :return: (int, int, int) -> Time from start, time from previous, item ID.
         """
-        from_prev = np.random.poisson(self.__poisson_lam, 1)
-        id_ = np.random.zipf(self.__zipf_param, 1)
+        from_prev = np.random.poisson(self.__poisson_lam, 1)[0]
+        id_ = np.random.zipf(self.__zipf_param, 1)[0]
+        while id_ > self.__max_id:
+            id_ = np.random.zipf(self.__zipf_param, 1)[0]
         self.__time_passed += from_prev
         return self.__time_passed, from_prev, id_
 
@@ -68,9 +73,9 @@ class PoissonZipfGenerator(AbstractGenerator):
         :param n: Number of items to generate.
         :return: (int, int, int) -> Time from start, time from previous, item ID.
         """
-        from_prev = np.random.poisson(self.__poisson_lam, n)
-        id_ = np.random.zipf(self.__zipf_param, n)
-        # TODO: finish implementation
-        return None
+        to_ret = []
+        for _ in range(n):
+            to_ret.append(self.next_item())
+        return to_ret
 
     # endregion
