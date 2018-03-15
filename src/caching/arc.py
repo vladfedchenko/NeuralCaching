@@ -8,7 +8,7 @@ from helpers.errors import AlgorithmError
 
 class ARCache(AbstractCache):
     """
-    LRUCache implements cache with Adaptive Replacement policy.
+    ARCache implements cache with Adaptive Replacement policy.
     Inherits AbstractCache.
     """
     # region Private variables
