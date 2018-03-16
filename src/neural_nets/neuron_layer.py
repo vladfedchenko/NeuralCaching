@@ -1,19 +1,39 @@
 """
-This module contains the implementation of simple forward propagation neural network layer.
+This module contains the implementation of simple feedforward neural network layer.
 """
 import numpy as np
 import math
-from types import *
+from types import FunctionType
+
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
+
+def sigmoid_deriv(x):
+    return sigmoid(x) * (1 - sigmoid(x))
+
+
+def lin(x):
+    return x
+
+
+def lin_deriv(_):
+    return 1
 
 
 class NeuralNetLayer:
     """
-    NeuralNetLayer is the implementation of a simple forward propagation neural network layer.
+    NeuralNetLayer is the implementation of a simple feedforward neural network layer.
     """
     # region Private variables
 
     __coef_matrix = None
     __activation = None
+    __activation_deriv = None
+
+    __inputs_mem = None
+    __outputs_mem = None
 
     # endregion
 
@@ -27,22 +47,35 @@ class NeuralNetLayer:
 
     # region Constructors
 
-    def __init__(self, neurons: int, prev_layer_neurons: int, activation_func: FunctionType=math.tanh):
+    def __init__(self, neurons: int,
+                 prev_layer_neurons: int,
+                 activation_func: FunctionType=sigmoid,
+                 activation_deriv: FunctionType=sigmoid_deriv):
         """
         Construct a new NeuralNetLayer object.
         :param neurons: Number of neurons in current layer.
         :param prev_layer_neurons: Number of neurons in previous layer.
         :param activation_func: Neuron activation function. Pass None if no activation required.
         """
-        self.__coef_matrix = np.random.rand(prev_layer_neurons, neurons)
-        if activation_func is not None:
+        self.__coef_matrix = np.random.rand(prev_layer_neurons + 1, neurons)  # + 1 to incorporate bias
+
+        if activation_func is not None and activation_deriv is not None:
             self.__activation = np.vectorize(activation_func)
+            self.__activation_deriv = np.vectorize(activation_deriv)
         else:
             self.__activation = None
+            self.__activation_deriv = np.vectorize(lin_deriv)
 
     # endregion
 
     # region Private methods
+
+    def __reset_memory(self):
+        """
+        Forget previous inputs and outputs
+        """
+        self.__inputs_mem = None
+        self.__outputs_mem = None
 
     # endregion
 
@@ -52,16 +85,44 @@ class NeuralNetLayer:
 
     # region Public methods
 
-    def propagate(self, inputs: np.ndarray):
+    def propagate(self, inputs: np.matrix):
         """
-        Takes a row-vector of layer inputs and produces a row-vector of layer outputs.
+        Takes a column-vector of layer inputs and produces a column-vector of layer outputs.
         :param inputs: Row-vector of inputs.
-        :return: npumpy.ndarray -> Row-vector of outputs.
+        :return: numpy.matrix -> Row-vector of outputs.
         """
-        assert (inputs.shape[1] == self.__coef_matrix.shape[0])
-        outs = np.matmul(inputs, self.__coef_matrix)
+        assert (inputs.shape[0] + 1 == self.__coef_matrix.shape[0])
+        self.__reset_memory()
+        inputs = np.concatenate(([[1.0]], inputs), axis=0)
+
+        outs = np.matmul(inputs.T, self.__coef_matrix)
         if self.__activation is not None:
             outs = self.__activation(outs)
-        return outs
+        return outs.T
+
+    def propagate_with_mem(self, inputs: np.matrix):
+        """
+        Propagation with memorization of inputs and outputs.
+        :param inputs: Row-vector of inputs.
+        :return: numpy.matrix -> Row-vector of outputs.
+        """
+        self.__outputs_mem = self.propagate(inputs)
+        self.__inputs_mem = np.concatenate(([[1.0]], inputs), axis=0)
+        return self.__outputs_mem
+
+    def backpropagate(self, error: np.matrix, learn_rate: float):
+        """
+        Backpropagation of error and weight update for current layer.
+        :param error: Errors from next layer.
+        :param learn_rate: Learning rate.
+        :return: np.matrix -> Errors to backpropagate to previous layer.
+        """
+        deltas = np.multiply(error, self.__activation_deriv(self.__outputs_mem))
+        err_to_pass = (self.__coef_matrix * deltas)[1:, :]
+
+        delta_weight = self.__inputs_mem * deltas.T * learn_rate
+        self.__coef_matrix -= delta_weight
+
+        return err_to_pass
 
     # endregion
