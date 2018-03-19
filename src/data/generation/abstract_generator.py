@@ -46,11 +46,14 @@ class AbstractGenerator:
         """
         raise NotImplementedError()
 
-    def next_n_items(self):
+    def next_n_items(self, n):
         """
         Returns next N generated item.
-        All subclasses need to implement this method.
+        :param n: Number of items to be generated.
         """
-        raise NotImplementedError()
+        to_ret = []
+        for _ in range(n):
+            to_ret.append(self.next_item())
+        return to_ret
 
     # endregion

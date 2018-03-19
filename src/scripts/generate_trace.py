@@ -3,7 +3,7 @@ This script generates a synthetic trace. Input parameter - out file name.
 The file is generated in CSV format.
 """
 import argparse
-from data.generation.poisson_zipf import PoissonZipfGenerator
+from data.generation.poisson_zipf_trace_generator import PoissonZipfGenerator
 
 
 def write_batch(f, batch):

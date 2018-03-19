@@ -122,12 +122,12 @@ class FeedforwardNeuralNet:
                 for layer in reversed(self.__layers):
                     error = layer.backpropagate(error, learn_rate)
 
-    def evaluate(self, inputs: np.matrix, outputs: np.matrix):
+    def evaluate(self, inputs: np.matrix, outputs: np.matrix) -> float:
         """
         Evaluate the NN by calculating mean error using provided error function.
-        :param inputs:
-        :param outputs:
-        :return:
+        :param inputs: Matrix of inputs.
+        :param outputs: Matrix of outputs.
+        :return: Average error using provided on creation error function.
         """
         n = inputs.shape[0]
         full_err = 0.0
