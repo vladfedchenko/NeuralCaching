@@ -71,6 +71,10 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
     """
     # region Private variables
 
+    __poisson_disappear = 0
+    __poisson_reappear = 0
+    __disappear_map = None
+
     # endregion
 
     # region Protected variables
@@ -87,8 +91,8 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
                  max_id: int=1000,
                  poisson_lam: float=10,
                  zipf_param: float=1.0,
-                 poisson_disappear=10000,
-                 poisson_reappear=10000):
+                 poisson_disappear=10**6,
+                 poisson_reappear=10**6):
         """
         Construct a new DisappearingPoissonZipfGenerator object.
         :param max_id: Maximum ID of the object.
@@ -99,11 +103,32 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
         """
         super().__init__(max_id, poisson_lam, zipf_param)
 
-        # TODO: finish implementation.
+        self.__poisson_disappear = poisson_disappear
+        self.__poisson_reappear = poisson_reappear
+
+        self.__disappear_map = {i: (np.random.poisson(self.__poisson_disappear, 1)[0], False)
+                                for i in range(1, max_id + 1)}
 
     # endregion
 
     # region Private methods
+
+    def __check_now_valid(self, from_start: int, id_: int) -> bool:
+        """
+        To check if item became available. Also updates __disappear_map.
+        :param from_start: Time of item arrival.
+        :param id_: ID of the object.
+        :return: True if object now available, False otherwise.
+        """
+        cur_status = self.__disappear_map[id_][1]
+        while self.__disappear_map[id_][0] >= from_start:
+            if cur_status:  # was missing, appeared
+                self.__disappear_map[id_][0] += np.random.poisson(self.__poisson_disappear, 1)[0]
+            else:  # was available, disappeared
+                self.__disappear_map[id_][0] += np.random.poisson(self.__poisson_reappear, 1)[0]
+            cur_status = not cur_status
+        self.__disappear_map[id_][1] = cur_status
+        return not cur_status
 
     # endregion
 
@@ -112,5 +137,22 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
     # endregion
 
     # region Public methods
+
+    def next_item(self) -> (int, int, int):
+        """
+        Returns next generated item.
+        :return: (int, int, int) -> Time from start, time from previous, item ID.
+        """
+        found_valid = False
+        from_start, from_prev, id_ = (None, None, None)
+
+        while not found_valid:
+            from_start, from_prev, id_ = super().next_item()
+            if from_start >= self.__disappear_map[id_][0]:  # item status changed: reappeared or disappeared
+                found_valid = self.__check_now_valid(from_start, id_)
+            elif not self.__disappear_map[id_][1]:  # item status remains the same and it is not disappeared
+                found_valid = True
+
+        return from_start, from_prev, id_
 
     # endregion
