@@ -1,5 +1,6 @@
 """
-This module contains the generator with poisson arrivals and Zipf popularity distribution.
+This module contains the generator with Poisson arrivals and Zipf popularity distribution.
+Also contains generator with same arrivals and popularity but items can randomly disappear and reappear.
 """
 import numpy as np
 from data.generation import AbstractGenerator, ZipfGenerator
@@ -15,6 +16,7 @@ class PoissonZipfGenerator(AbstractGenerator):
     __zipf_generator = None
     __poisson_lam = 0.0
     __time_passed = 0
+    __id_shift = 0
 
     # endregion
 
@@ -28,16 +30,18 @@ class PoissonZipfGenerator(AbstractGenerator):
 
     # region Constructors
 
-    def __init__(self, max_id: int=1000, poisson_lam: float=10, zipf_param: float=1.0):
+    def __init__(self, max_id: int=1000, poisson_lam: float=10, zipf_param: float=1.0, id_shift: int=0):
         """
         Construct a new PoissonZipfGenerator object.
         :param max_id: Maximum ID of the object.
         :param poisson_lam: Poisson distribution parameter.
         :param zipf_param: Zipf distribution parameter.
+        :param id_shift: Shift of the starting item ID.
         """
         self.__zipf_generator = ZipfGenerator(zipf_param, max_id)
         self.__poisson_lam = poisson_lam
         self.__time_passed = 0
+        self.__id_shift = id_shift
 
     # endregion
 
@@ -57,7 +61,7 @@ class PoissonZipfGenerator(AbstractGenerator):
         :return: (int, int, int) -> Time from start, time from previous, item ID.
         """
         from_prev = np.random.poisson(self.__poisson_lam, 1)[0]
-        id_ = self.__zipf_generator.next_item()
+        id_ = self.__zipf_generator.next_item() + self.__id_shift
         self.__time_passed += from_prev
         return self.__time_passed, from_prev, id_
 
@@ -91,23 +95,25 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
                  max_id: int=1000,
                  poisson_lam: float=10,
                  zipf_param: float=1.0,
-                 poisson_disappear=10**6,
-                 poisson_reappear=10**6):
+                 id_shift: int = 0,
+                 poisson_disappear: float=10**6,
+                 poisson_reappear: float=10**6):
         """
         Construct a new DisappearingPoissonZipfGenerator object.
         :param max_id: Maximum ID of the object.
         :param poisson_lam: Poisson distribution parameter.
         :param zipf_param: Zipf distribution parameter.
+        :param id_shift: Shift of the starting item ID.
         :param poisson_disappear: Poisson distribution parameter of disappearing.
         :param poisson_reappear: Poisson distribution parameter of reappearing.
         """
-        super().__init__(max_id, poisson_lam, zipf_param)
+        super().__init__(max_id, poisson_lam, zipf_param, id_shift)
 
         self.__poisson_disappear = poisson_disappear
         self.__poisson_reappear = poisson_reappear
 
-        self.__disappear_map = {i: (np.random.poisson(self.__poisson_disappear, 1)[0], False)
-                                for i in range(1, max_id + 1)}
+        self.__disappear_map = {i: [np.random.poisson(self.__poisson_disappear, 1)[0], False]
+                                for i in range(id_shift + 1, id_shift + max_id + 1)}
 
     # endregion
 

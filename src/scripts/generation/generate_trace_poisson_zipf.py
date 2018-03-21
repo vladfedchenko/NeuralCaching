@@ -1,9 +1,9 @@
 """
-This script generates a synthetic trace. Input parameter - out file name.
+This script generates a synthetic trace of population with Poisson arrivals and Zipf popularity.
 The file is generated in CSV format.
 """
 import argparse
-from data.generation.poisson_zipf_trace_generator import PoissonZipfGenerator
+from data.generation import PoissonZipfGenerator
 
 
 def write_batch(f, batch):
@@ -18,7 +18,7 @@ def main():
                         help="Poisson arrival distribution parameter >= 0.0")
     parser.add_argument("zipf",
                         type=float,
-                        help="Zipf popularity distribution parameter > 1.0")
+                        help="Zipf popularity distribution parameter >= 0.0")
     parser.add_argument("number",
                         type=int,
                         help="number of items in trace")
