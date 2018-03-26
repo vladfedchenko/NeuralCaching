@@ -1,6 +1,8 @@
 """
 This module contains helping collections.
 """
+import numpy as np
+import math
 
 
 class CollectionError(Exception):
@@ -298,5 +300,96 @@ class LRUQueue:
         """
         self.__linked_list.remove_from_list(self.__node_map[item])
         del self.__node_map[item]
+
+    # endregion
+
+
+class CountMinSketch:
+    """
+    A count–min sketch implementation.
+    """
+    # region Private variables
+
+    __count_min_cells = 0
+    __min_sketch_buckets = None
+    __hash_additions = None
+
+    # endregion
+
+    # region Protected variables
+
+    # endregion
+
+    # region Public variables, properties
+
+    # endregion
+
+    # region Constructors
+
+    def __init__(self, count_min_cells=100, hash_func_num=10):
+        """
+        Construct a new CountMinSketch object.
+        :param count_min_cells: Number of cells for count min.
+        :param hash_func_num: Number of hash functions.
+        """
+        self.__count_min_cells = count_min_cells
+        self.__min_sketch_buckets = np.matrix([[0] * count_min_cells for _ in range(hash_func_num)])
+        self.__hash_additions = [str(hash(str(i))) for i in range(hash_func_num)]
+
+    @staticmethod
+    def construct_by_constraints(overcount_perc: float):
+        """
+        Construct a count-min sketch instance by epsilon constraint.
+        :param overcount_perc: Maximum allowed overcount of item over the number of requests.
+        :return: An instance of CountMinSketch
+        """
+        epsilon = overcount_perc
+        cells = 1.0 / epsilon
+        hashes = math.log(epsilon, 0.5)
+        return CountMinSketch(int(cells), int(hashes))
+
+    # endregion
+
+    # region Private methods
+
+    # endregion
+
+    # region Protected methods
+
+    # endregion
+
+    # region Public methods
+
+    def update_counters(self, id_):
+        """
+        Update counters of count-min sketch.
+        :param id_: ID of the object.
+        """
+        for i, hash_add in enumerate(self.__hash_additions):
+            hash_key = hash_add + str(id_)
+            hash_val = hash(hash_key)
+            cell = hash_val % self.__count_min_cells
+            self.__min_sketch_buckets[i, cell] += 1
+
+    def get_count(self, id_) -> int:
+        """
+        Get access count using count-min sketch
+        :param id_: ID of the object.
+        :return: Estimated hit count.
+        """
+        counts = []
+        for i, hash_add in enumerate(self.__hash_additions):
+            hash_key = hash_add + str(id_)
+            hash_val = hash(hash_key)
+            cell = hash_val % self.__count_min_cells
+            counts.append(self.__min_sketch_buckets[i, cell])
+
+        return np.min(counts)
+
+    def get_counter_state(self) -> np.ndarray:
+        """
+        :return: The state of count-min sketch as a flat array.
+        """
+        return self.__min_sketch_buckets.flatten()
 
     # endregion

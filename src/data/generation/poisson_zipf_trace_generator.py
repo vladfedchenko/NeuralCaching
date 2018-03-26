@@ -16,11 +16,12 @@ class PoissonZipfGenerator(AbstractGenerator):
     __zipf_generator = None
     __poisson_lam = 0.0
     __time_passed = 0
-    __id_shift = 0
 
     # endregion
 
     # region Protected variables
+
+    _id_shift = 0
 
     # endregion
 
@@ -41,7 +42,8 @@ class PoissonZipfGenerator(AbstractGenerator):
         self.__zipf_generator = ZipfGenerator(zipf_param, max_id)
         self.__poisson_lam = poisson_lam
         self.__time_passed = 0
-        self.__id_shift = id_shift
+
+        self._id_shift = id_shift
 
     # endregion
 
@@ -61,7 +63,7 @@ class PoissonZipfGenerator(AbstractGenerator):
         :return: (int, int, int) -> Time from start, time from previous, item ID.
         """
         from_prev = np.random.poisson(self.__poisson_lam, 1)[0]
-        id_ = self.__zipf_generator.next_item() + self.__id_shift
+        id_ = self.__zipf_generator.next_item() + self._id_shift
         self.__time_passed += from_prev
         return self.__time_passed, from_prev, id_
 
@@ -160,5 +162,81 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
                 found_valid = True
 
         return from_start, from_prev, id_
+
+    # endregion
+
+
+class PoissonShuffleZipfGenerator(PoissonZipfGenerator):
+    """
+    PoissonShuffleZipfGenerator implements generator with poisson arrivals and Zipf popularity distribution,
+    but every time window item popularity is randomly shuffled.
+    Inherits AbstractGenerator.
+    """
+    # region Private variables
+
+    __shuffle_window = 0.0
+    __next_shuffle = 0.0
+
+    # endregion
+
+    # region Protected variables
+
+    # endregion
+
+    # region Public variables, properties
+
+    # endregion
+
+    # region Constructors
+
+    def __init__(self,
+                 max_id: int=1000,
+                 poisson_lam: float=10,
+                 zipf_param: float=1.0,
+                 id_shift: int=0,
+                 shuffle_window: float=1000.0,
+                 start_shuffled: bool=False):
+        """
+        Construct a new PoissonShuffleZipfGenerator object.
+        :param max_id: Maximum ID of the object.
+        :param poisson_lam: Poisson distribution parameter.
+        :param zipf_param: Zipf distribution parameter.
+        :param id_shift: Shift of the starting item ID.
+        :param shuffle_window: Time window after which popularity if shuffled.
+        :param start_shuffled: Determine if the items are already shuffled during first time window.
+        """
+        super().__init__(max_id, poisson_lam, zipf_param, id_shift)
+
+        self.__shuffle_window = shuffle_window
+        self.__next_shuffle = shuffle_window
+
+        self.__shuffle_map = np.arrange(id_shift + 1, id_shift + max_id + 1)
+        if start_shuffled:
+            np.random.shuffle(self.__shuffle_map)
+
+    # endregion
+
+    # region Private methods
+
+    # endregion
+
+    # region Protected methods
+
+    # endregion
+
+    # region Public methods
+
+    def next_item(self) -> (int, int, int):
+        """
+        Returns next generated item.
+        :return: (int, int, int) -> Time from start, time from previous, item ID.
+        """
+        from_start, from_prev, id_ = super().next_item()
+        while from_start > self.__next_shuffle:
+            self.__next_shuffle += self.__shuffle_window
+            np.random.shuffle(self.__shuffle_map)
+
+        index = id_ - self._id_shift - 1
+        return from_start, from_prev, self.__shuffle_map[index]
 
     # endregion

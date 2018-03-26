@@ -16,7 +16,7 @@ def main():
                         "--iterations",
                         type=int,
                         help="iterations to do",
-                        default=100)
+                        default=1000)
     parser.add_argument("-l",
                         "--learning_rate",
                         type=float,
@@ -29,7 +29,7 @@ def main():
     #                     default=0.9)
     args = parser.parse_args()
 
-    inp = pd.read_csv(args.input).sample(frac=.01)
+    inp = pd.read_csv(args.input)  # .sample(frac=.01)
     outp = np.matrix(inp.iloc[:, inp.shape[1] - 1:inp.shape[1]])
     inp = np.matrix(inp.iloc[:, 1:inp.shape[1] - 1])
     print(inp.shape)

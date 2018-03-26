@@ -1,4 +1,4 @@
 from data.generation.abstract_generator import AbstractGenerator
 from data.generation.zipf_generator import ZipfGenerator
 from data.generation.poisson_zipf_trace_generator import PoissonZipfGenerator, DisappearingPoissonZipfGenerator
-from data.generation.mixed_pois_zipf_diss_trace_generator import MixedPoissonZipfGenerator
+from data.generation.mixed_population_generator import MixedPopulationGenerator

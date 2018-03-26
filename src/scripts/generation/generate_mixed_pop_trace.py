@@ -5,7 +5,7 @@ Second one has the same arrivals and popularity but objects randomly disappear a
 The file is generated in CSV format.
 """
 import argparse
-from data.generation import MixedPoissonZipfGenerator
+from data.generation import MixedPopulationGenerator, PoissonZipfGenerator, DisappearingPoissonZipfGenerator
 from tqdm import tqdm
 
 
@@ -71,14 +71,16 @@ def main():
         args.unique_dis = args.unique
 
     with open(args.output, 'w') as f:
-        generator = MixedPoissonZipfGenerator(args.poisson,
-                                              args.zipf,
-                                              args.unique,
-                                              args.poisson_dis,
-                                              args.zipf_dis,
-                                              args.unique_dis,
-                                              args.disappear,
-                                              args.reappear)
+        generator = MixedPopulationGenerator(PoissonZipfGenerator(args.unique,
+                                                                  args.poisson,
+                                                                  args.zipf,
+                                                                  0),
+                                             DisappearingPoissonZipfGenerator(args.unique_dis,
+                                                                              args.poisson_dis,
+                                                                              args.zipf_dis,
+                                                                              args.unique,
+                                                                              args.disappear,
+                                                                              args.reappear,))
         n = args.number
         with tqdm(total=n) as pbar:
 

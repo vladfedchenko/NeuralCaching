@@ -3,8 +3,8 @@ This module contains the implementation of LFU cache.
 To count frequencies of the event occurrence count–min sketch is used.
 """
 from caching.abstract_cache import AbstractCache
-import numpy as np
 from queue import PriorityQueue
+from helpers.collections import CountMinSketch
 
 
 class LFUCache(AbstractCache):
@@ -14,10 +14,7 @@ class LFUCache(AbstractCache):
     """
     # region Private variables
 
-    __count_min_cells = 0
-    __hash_func_num = 0
-    __min_sketch_counter = None
-    __hash_additions = None
+    __min_sketch = None
     __hit_queue = None
     __hit_map = {}
 
@@ -38,47 +35,16 @@ class LFUCache(AbstractCache):
         Construct a new LFUCache object.
         :param size: Size of cache.
         :param count_min_cells: Number of cells for count min.
+        :param hash_func_num: Number of hash functions.
         """
         super().__init__(size)
-        self.__count_min_cells = count_min_cells
-        self.__hash_func_num = hash_func_num
-        self.__min_sketch_counter = np.array([0] * count_min_cells)
-
-        self.__hash_additions = [str(hash(str(i))) for i in range(hash_func_num)]
-
+        self.__min_sketch = CountMinSketch(count_min_cells, hash_func_num)
         self.__hit_queue = PriorityQueue()
         self.__hit_map = {}  # stores hit counts for cached objects only
 
     # endregion
 
     # region Private methods
-
-    def __update_counters(self, id_):
-        """
-        Update counters of count-min sketch.
-        :param id_: ID of the object.
-        """
-        for hash_add in self.__hash_additions:
-            hash_key = hash_add + str(id_)
-            hash_val = hash(hash_key)
-            cell = hash_val % self.__count_min_cells
-            self.__min_sketch_counter[cell] += 1
-
-    def __get_count(self, id_):
-        """
-        Get access count using count-min sketch
-        :param id_: ID of the object.
-        :return: Estimated hit count.
-        """
-        indices = []
-        for hash_add in self.__hash_additions:
-            hash_key = hash_add + str(id_)
-            hash_val = hash(hash_key)
-            cell = hash_val % self.__count_min_cells
-            indices.append(cell)
-
-        counts = self.__min_sketch_counter[indices]
-        return np.min(counts)
 
     # endregion
 
@@ -91,8 +57,8 @@ class LFUCache(AbstractCache):
         :param size: Size of the object.
         :param time: Time of the request.
         """
-        self.__update_counters(id_)
-        curr_freq = self.__get_count(id_)
+        self.__min_sketch.update_counters(id_)
+        curr_freq = self.__min_sketch.get_count(id_)
         self.__hit_map[id_] = curr_freq
 
     def _process_cache_miss(self, id_, size, time):
@@ -104,8 +70,8 @@ class LFUCache(AbstractCache):
         :param size: Size of the object.
         :param time: Time of the request.
         """
-        self.__update_counters(id_)
-        curr_freq = self.__get_count(id_)
+        self.__min_sketch.update_counters(id_)
+        curr_freq = self.__min_sketch.get_count(id_)
 
         if self._free_cache < size and not self.__hit_queue.empty():
             c, i = self.__hit_queue.get()  # counters are not updated in queue, need to compensate for it
