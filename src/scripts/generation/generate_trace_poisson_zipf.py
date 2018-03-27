@@ -10,6 +10,7 @@ from tqdm import tqdm
 def write_batch(f, batch):
     for tfs, tfp, id_ in batch:
         f.write(f"{tfs}, {tfp}, {id_}\n")
+    f.flush()
 
 
 def main():

@@ -1,6 +1,6 @@
 """
-This module contains the generator with Poisson arrivals and Zipf popularity distribution.
-Also contains generator with same arrivals and popularity but items can randomly disappear and reappear.
+This module contains the generator with Poisson arrivals and Zipf popularity distribution and variations of this
+generator - disappearing population generator and shuffled popularity generator.
 """
 import numpy as np
 from data.generation import AbstractGenerator, ZipfGenerator
