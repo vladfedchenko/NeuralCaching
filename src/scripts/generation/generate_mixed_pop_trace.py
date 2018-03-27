@@ -23,12 +23,6 @@ def main():
     parser.add_argument("zipf",
                         type=float,
                         help="Zipf popularity distribution parameter >= 0.0")
-    parser.add_argument("disappear",
-                        type=float,
-                        help="disappear time Poisson distribution parameter >= 0.0")
-    parser.add_argument("reappear",
-                        type=float,
-                        help="reappear time Poisson distribution parameter >= 0.0")
     parser.add_argument("number",
                         type=int,
                         help="number of items in trace")
