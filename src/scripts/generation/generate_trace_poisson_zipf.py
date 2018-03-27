@@ -4,6 +4,7 @@ The file is generated in CSV format.
 """
 import argparse
 from data.generation import PoissonZipfGenerator
+from tqdm import tqdm
 
 
 def write_batch(f, batch):
@@ -40,14 +41,18 @@ def main():
     with open(args.output, 'w') as f:
         generator = PoissonZipfGenerator(args.unique, args.poisson, args.zipf)
         n = args.number
-        while n > args.batch:
-            batch = generator.next_n_items(args.batch)
-            write_batch(f, batch)
-            n -= args.batch
 
-        if n > 0:
-            batch = generator.next_n_items(n)
-            write_batch(f, batch)
+        with tqdm(total=n) as pbar:
+            while n > args.batch:
+                batch = generator.next_n_items(args.batch)
+                write_batch(f, batch)
+                n -= args.batch
+                pbar.update(args.batch)
+
+            if n > 0:
+                batch = generator.next_n_items(n)
+                write_batch(f, batch)
+                pbar.update(n)
 
 
 if __name__ == "__main__":
