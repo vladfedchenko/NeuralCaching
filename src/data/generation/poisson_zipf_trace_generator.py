@@ -81,6 +81,8 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
     __poisson_reappear = 0
     __disappear_map = None
 
+    __last_time = 0
+
     # endregion
 
     # region Protected variables
@@ -117,6 +119,8 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
         self.__disappear_map = {i: [np.random.poisson(self.__poisson_disappear, 1)[0], False]
                                 for i in range(id_shift + 1, id_shift + max_id + 1)}
 
+        self.__last_time = 0
+
     # endregion
 
     # region Private methods
@@ -129,7 +133,7 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
         :return: True if object now available, False otherwise.
         """
         cur_status = self.__disappear_map[id_][1]
-        while self.__disappear_map[id_][0] >= from_start:
+        while self.__disappear_map[id_][0] <= from_start:
             if cur_status:  # was missing, appeared
                 self.__disappear_map[id_][0] += np.random.poisson(self.__poisson_disappear, 1)[0]
             else:  # was available, disappeared
@@ -160,6 +164,9 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
                 found_valid = self.__check_now_valid(from_start, id_)
             elif not self.__disappear_map[id_][1]:  # item status remains the same and it is not disappeared
                 found_valid = True
+
+        from_prev = from_start - self.__last_time
+        self.__last_time = from_start
 
         return from_start, from_prev, id_
 
@@ -210,7 +217,7 @@ class PoissonShuffleZipfGenerator(PoissonZipfGenerator):
         self.__shuffle_window = shuffle_window
         self.__next_shuffle = shuffle_window
 
-        self.__shuffle_map = np.arrange(id_shift + 1, id_shift + max_id + 1)
+        self.__shuffle_map = np.arange(id_shift + 1, id_shift + max_id + 1)
         if start_shuffled:
             np.random.shuffle(self.__shuffle_map)
 

@@ -32,17 +32,17 @@ def main():
     parser.add_argument("shuffle_window",
                         type=float,
                         help="unique items number > 0")
-    parser.add_argument("-pd",
+    parser.add_argument("-ps",
                         "--poisson_shuffle",
                         help="""Poisson arrival distribution parameter >= 0.0 for shuffled population.
                         If not specified - the same as other population""",
                         type=int)
-    parser.add_argument("-zd",
+    parser.add_argument("-zs",
                         "--zipf_shuffle",
                         help="""Zipf popularity distribution parameter >= 0.0 for shuffled population.
                         If not specified - the same as other population""",
                         type=int)
-    parser.add_argument("-ud",
+    parser.add_argument("-us",
                         "--unique_shuffle",
                         type=int,
                         help="""unique items number of items in shuffled population > 0.
