@@ -31,7 +31,7 @@ def main():
                         help="unique items number > 0")
     parser.add_argument("shuffle_window",
                         type=float,
-                        help="unique items number > 0")
+                        help="shuffle window")
     parser.add_argument("-ps",
                         "--poisson_shuffle",
                         help="""Poisson arrival distribution parameter >= 0.0 for shuffled population.

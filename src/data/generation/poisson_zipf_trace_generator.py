@@ -3,6 +3,7 @@ This module contains the generator with Poisson arrivals and Zipf popularity dis
 generator - disappearing population generator and shuffled popularity generator.
 """
 import numpy as np
+import random
 from data.generation import AbstractGenerator, ZipfGenerator
 
 
@@ -101,7 +102,8 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
                  zipf_param: float=1.0,
                  id_shift: int = 0,
                  poisson_disappear: float=10**6,
-                 poisson_reappear: float=10**6):
+                 poisson_reappear: float=10**6,
+                 start_randomized: bool=False):
         """
         Construct a new DisappearingPoissonZipfGenerator object.
         :param max_id: Maximum ID of the object.
@@ -116,8 +118,12 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
         self.__poisson_disappear = poisson_disappear
         self.__poisson_reappear = poisson_reappear
 
-        self.__disappear_map = {i: [np.random.poisson(self.__poisson_disappear, 1)[0], False]
-                                for i in range(id_shift + 1, id_shift + max_id + 1)}
+        if start_randomized:
+            self.__disappear_map = {i: [np.random.poisson(self.__poisson_disappear, 1)[0], random.random() < 0.5]
+                                    for i in range(id_shift + 1, id_shift + max_id + 1)}
+        else:
+            self.__disappear_map = {i: [np.random.poisson(self.__poisson_disappear, 1)[0], False]
+                                    for i in range(id_shift + 1, id_shift + max_id + 1)}
 
         self.__last_time = 0
 

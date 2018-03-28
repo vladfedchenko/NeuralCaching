@@ -61,7 +61,8 @@ def main():
                                                      args.zipf,
                                                      0,
                                                      args.disappear,
-                                                     args.reappear)
+                                                     args.reappear,
+                                                     True)
         n = args.number
 
         with tqdm(total=args.skip, desc="Skipping first items", unit="item(s)") as pbar:
