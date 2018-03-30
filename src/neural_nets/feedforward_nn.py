@@ -4,6 +4,9 @@ This module contains the implementation of simple feedforward neural network.
 from neural_nets.neuron_layer import NeuralNetLayer, sigmoid, sigmoid_deriv
 from types import FunctionType
 import numpy as np
+from tqdm import tqdm
+import sys
+import math
 
 
 def squared_error(y, calc_y):
@@ -102,42 +105,72 @@ class FeedforwardNeuralNet:
             outs = layer.propagate(outs)
         return outs
 
-    def backpropagation_learn(self, inputs: np.matrix, outputs: np.matrix, iterations: int=100, learn_rate: float=0.1):
+    def backpropagation_learn(self, inputs: np.matrix,
+                              outputs: np.matrix,
+                              learn_rate: float=0.1,
+                              show_progress: bool=False):
         """
         Update the weights of the NN using error backward propagation algorithm.
         Stochastic gradient descent is the basis.
         :param inputs: Matrix of inputs.
         :param outputs: Matrix of outputs.
-        :param iterations: Number of iterations to learn.
         :param learn_rate: Learning rate parameter.
+        :param show_progress: Show progress bar.
         """
         n = inputs.shape[0]
-        for i in range(iterations):
-            for sample in range(n):
-                inp = inputs[sample, :].T
-                outp = outputs[sample, :].T
-                calc_outp = self.__feedforward_with_mem(inp)
+        if show_progress:
+            iterable = tqdm(range(n), desc="Samples processed", unit="samples")
+        else:
+            iterable = range(n)
+        for sample in iterable:
+            inp = inputs[sample, :].T
+            outp = outputs[sample, :].T
+            calc_outp = self.__feedforward_with_mem(inp)
 
-                error = self.__error_deriv(outp, calc_outp)
-                for layer in reversed(self.__layers):
-                    error = layer.backpropagate(error, learn_rate)
+            error = self.__error_deriv(outp, calc_outp)
+            for layer in reversed(self.__layers):
+                error = layer.backpropagate(error, learn_rate)
 
-    def evaluate(self, inputs: np.matrix, outputs: np.matrix) -> float:
+    def evaluate(self,
+                 inputs: np.matrix,
+                 outputs: np.matrix,
+                 show_progress: bool=False) -> (float, float, float):
         """
         Evaluate the NN by calculating mean error using provided error function.
         :param inputs: Matrix of inputs.
         :param outputs: Matrix of outputs.
-        :return: Average error using provided on creation error function.
+        :param show_progress: Show progress bar.
+        :return: Mean, standard deviation, min, max errors using provided on creation error function.
         """
         n = inputs.shape[0]
         full_err = 0.0
-        for sample in range(n):
+        min_error = sys.float_info.max
+        max_error = 0.0
+        if show_progress:
+            iterable = tqdm(range(n), desc="Evaluated samples", unit="samples")
+        else:
+            iterable = range(n)
+
+        errors = []
+        for sample in iterable:
             inp = inputs[sample, :].T
             outp = outputs[sample, :].T
             calc_outp = self.feedforward(inp)
-            err = self.__error_func(outp, calc_outp)
-            full_err += np.sum(err)
+            err = np.sum(self.__error_func(outp, calc_outp))
 
-        return full_err / n
+            if err < min_error:
+                min_error = err
+
+            if err > max_error:
+                max_error = err
+
+            errors.append(err)
+
+            full_err += err
+
+        mean = full_err / n
+        deviation = math.sqrt(np.sum([(x - mean)**2 for x in errors]) / n)
+
+        return mean, deviation, min_error, max_error
 
     # endregion
