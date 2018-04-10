@@ -10,6 +10,7 @@ import numpy as np
 
 from_prev_list = []
 
+
 def write_batch(f, batch):
     global from_prev_list
     for tfs, tfp, id_ in batch:

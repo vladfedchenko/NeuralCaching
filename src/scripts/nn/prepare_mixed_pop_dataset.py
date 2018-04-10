@@ -47,7 +47,7 @@ def fill_res_dataframe(out_file, ids: list, input_cms_list: list, output_cms: Co
         row.extend(counts)
 
         row.append(output_cms.get_count(id_))
-        row.extend(output_cms.get_counter_state().tolist()[0])
+        row.extend(list(output_cms.get_counter_state().tolist())[0])
 
         if dataframe_cols is None:
             cols = [''] * len(row)

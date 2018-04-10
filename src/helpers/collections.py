@@ -111,7 +111,7 @@ class DoubleLinkedList:
         """
         To add a new node and make it head of the list.
         :param val: Value of the node.
-        :return: DoubleLinkedList.__Node -> Newly createCollectionEmptyErrord node.
+        :return: DoubleLinkedList.__Node -> Newly created node.
         """
         node = self.__Node(None, self.__head, val, self)
         if self.__head is not None:
