@@ -5,7 +5,7 @@ Second one has the same arrivals and popularity but objects randomly shuffles po
 The file is generated in CSV format.
 """
 import argparse
-from data.generation import MixedPopulationGenerator, PoissonZipfGenerator, PoissonShuffleZipfGenerator
+from data.generation import MixedPopulationTimedGenerator, PoissonZipfGenerator, PoissonShuffleZipfGenerator
 from tqdm import tqdm
 
 
@@ -69,16 +69,16 @@ def main():
         args.unique_shuffle = args.unique
 
     with open(args.output, 'w') as f:
-        generator = MixedPopulationGenerator(PoissonZipfGenerator(args.unique,
-                                                                  args.poisson,
-                                                                  args.zipf,
-                                                                  0),
-                                             PoissonShuffleZipfGenerator(args.unique_shuffle,
-                                                                         args.poisson_shuffle,
-                                                                         args.zipf_shuffle,
-                                                                         args.unique,
-                                                                         args.shuffle_window,
-                                                                         True))
+        generator = MixedPopulationTimedGenerator(PoissonZipfGenerator(args.unique,
+                                                                       args.poisson,
+                                                                       args.zipf,
+                                                                       0),
+                                                  PoissonShuffleZipfGenerator(args.unique_shuffle,
+                                                                              args.poisson_shuffle,
+                                                                              args.zipf_shuffle,
+                                                                              args.unique,
+                                                                              args.shuffle_window,
+                                                                              True))
         n = args.number
         with tqdm(total=n) as pbar:
 

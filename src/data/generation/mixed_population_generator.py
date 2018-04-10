@@ -3,11 +3,11 @@ This module contains a generates a trace with mixed population.
 Both have Poisson arrivals and Zipf popularity but in one items randomly disappear and reappear accordingly to
 some other Poisson distribution.
 """
-from data.generation import AbstractGenerator
+from data.generation import AbstractTimedGenerator
 import random
 
 
-class MixedPopulationGenerator(AbstractGenerator):
+class MixedPopulationTimedGenerator(AbstractTimedGenerator):
     """
     A generator that generates a trace with mixed population.
     Both have Poisson arrivals and Zipf popularity but in one items randomly disappear and reappear accordingly to
@@ -35,11 +35,11 @@ class MixedPopulationGenerator(AbstractGenerator):
     # region Constructors
 
     def __init__(self,
-                 first_generator: AbstractGenerator,
-                 second_generator: AbstractGenerator,
+                 first_generator: AbstractTimedGenerator,
+                 second_generator: AbstractTimedGenerator,
                  same_time_spread: float=10**(-10)):
         """
-        Create a new instance of MixedPopulationGenerator
+        Create a new instance of MixedPopulationTimedGenerator
         :param first_generator: First item generator.
         :param second_generator: Second item generator.
         """

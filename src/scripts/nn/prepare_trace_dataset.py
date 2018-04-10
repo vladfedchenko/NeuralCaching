@@ -42,6 +42,9 @@ def main():
                               "mixed. If passed then every row will have class label"),
                         type=int,
                         default=None)
+    parser.add_argument("-sid",
+                        "--save_id",
+                        help="save id of the object")
     args = parser.parse_args()
 
     input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
@@ -80,6 +83,11 @@ def main():
                     if ids_class is not None:
                         ids_class_matrix = np.matrix([ids_class]).T
                         data_matrix = np.concatenate((ids_class_matrix, data_matrix), axis=1)
+
+                    if args.save_id:
+                        ids_matr = np.matrix([ids]).T
+                        data_matrix = np.concatenate((ids_matr, data_matrix), axis=1)
+
                     write_batch(f, data_matrix)
 
                 time_processed += args.window_size

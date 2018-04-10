@@ -4,14 +4,15 @@ generator - disappearing population generator and shuffled popularity generator.
 """
 import numpy as np
 import random
-from data.generation import AbstractGenerator, ZipfGenerator
+from data.generation import AbstractTimedGenerator, AbstractDistributionGenerator, ZipfGenerator
 
 
-class PoissonZipfGenerator(AbstractGenerator):
+class PoissonZipfGenerator(AbstractDistributionGenerator, AbstractTimedGenerator):
     """
     PoissonZipfGenerator implements generator with poisson arrivals and Zipf popularity distribution.
-    Inherits AbstractGenerator.
+    Inherits AbstractTimedGenerator.
     """
+
     # region Private variables
 
     __zipf_generator = None
@@ -57,6 +58,13 @@ class PoissonZipfGenerator(AbstractGenerator):
     # endregion
 
     # region Public methods
+
+    def get_distribution_map(self) -> "dict, None":
+        """
+        Return distribution map. Maps item IDs to the probability to observe it.
+        :return: Distribution map or None.
+        """
+        return self.__zipf_generator.get_distribution_map()
 
     def next_item(self) -> (int, int, int):
         """
@@ -156,6 +164,13 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
 
     # region Public methods
 
+    def get_distribution_map(self) -> "dict, None":
+        """
+        Return distribution map. Maps item IDs to the probability to observe it.
+        :return: Distribution map or None.
+        """
+        return None
+
     def next_item(self) -> (int, int, int):
         """
         Returns next generated item.
@@ -183,7 +198,7 @@ class PoissonShuffleZipfGenerator(PoissonZipfGenerator):
     """
     PoissonShuffleZipfGenerator implements generator with poisson arrivals and Zipf popularity distribution,
     but every time window item popularity is randomly shuffled.
-    Inherits AbstractGenerator.
+    Inherits AbstractTimedGenerator.
     """
     # region Private variables
 
@@ -238,6 +253,14 @@ class PoissonShuffleZipfGenerator(PoissonZipfGenerator):
     # endregion
 
     # region Public methods
+
+    def get_distribution_map(self) -> "dict, None":
+        """
+        Return distribution map. Maps item IDs to the probability to observe it.
+        :return: Distribution map or None.
+        """
+        probability = np.mean(super().get_distribution_map().values())
+        return {i: probability for i in self.__shuffle_map}
 
     def next_item(self) -> (int, int, int):
         """
