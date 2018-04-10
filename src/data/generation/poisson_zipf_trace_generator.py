@@ -72,7 +72,7 @@ class PoissonZipfGenerator(AbstractDistributionGenerator, AbstractTimedGenerator
         :return: (int, int, int) -> Time from start, time from previous, item ID.
         """
         from_prev = np.random.poisson(self.__poisson_lam, 1)[0]
-        id_ = self.__zipf_generator.next_item() + self._id_shift
+        id_ = self.__zipf_generator.get_item() + self._id_shift
         self.__time_passed += from_prev
         return self.__time_passed, from_prev, id_
 

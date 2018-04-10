@@ -64,7 +64,7 @@ class ZipfGenerator(AbstractGenerator, AbstractDistributionGenerator):
             dist_map[id_] = self.__cdf_mapping[id_] - self.__cdf_mapping[id_ - 1]
         return dist_map
 
-    def next_item(self):
+    def get_item(self):
         """
         Returns next generated item.
         :return: int -> Next generated item.
