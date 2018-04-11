@@ -27,25 +27,25 @@ def main():
     args = parser.parse_args()
 
     with open(args.input, "r") as f:
-        lines = list(map(lambda x: x.split(), f.readlines()))
+        lines = [x.split() for x in f.readlines()]
         mean_list = [float(line[0]) for line in lines]
         deviation_list = [float(line[1]) for line in lines]
         min_list = [float(line[2]) for line in lines]
         max_list = [float(line[3]) for line in lines]
 
-    tmp = range(1, len(mean_list) + 1)
+    iters = range(1, len(mean_list) + 1)
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
-    fig.suptitle("Feedforward NN evaluation accuracy")
+    fig.suptitle("Feedforward NN evaluation error")
 
     sub1 = plt.subplot(211)
     axis = plt.gca()
     axis.set_yscale("log")
-    line_mean, = sub1.plot(tmp, mean_list, "b", label="Mean")
-    line_min, = sub1.plot(tmp, min_list, "g", label="Min")
-    line_max, = sub1.plot(tmp, max_list, "r", label="Max")
+    line_mean, = sub1.plot(iters, mean_list, "b", label="Mean")
+    line_min, = sub1.plot(iters, min_list, "g", label="Min")
+    line_max, = sub1.plot(iters, max_list, "r", label="Max")
     sub1.legend(handles=[line_mean, line_min, line_max])
     sub1.set_xlabel("Iterations")
-    sub1.set_ylabel("Accuracy")
+    sub1.set_ylabel("Error")
 
     y_limit = axis.get_ylim()
 
@@ -53,7 +53,7 @@ def main():
     axis = plt.gca()
     axis.set_yscale("log")
     axis.set_ylim(y_limit)
-    line_dev, = sub2.plot(tmp, deviation_list, "b", label="Standard deviation")
+    line_dev, = sub2.plot(iters, deviation_list, "b", label="Standard deviation")
     sub2.legend(handles=[line_dev])
     sub2.set_xlabel("Iterations")
     sub2.set_ylabel("Standard deviation")

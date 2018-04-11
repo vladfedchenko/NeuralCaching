@@ -44,7 +44,8 @@ def main():
                         default=None)
     parser.add_argument("-sid",
                         "--save_id",
-                        help="save id of the object")
+                        help="save id of the object",
+                        action="store_true")
     args = parser.parse_args()
 
     input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
@@ -66,7 +67,7 @@ def main():
                 window_df = input_df[input_df.from_start < time_processed + args.window_size]
                 items_count = float(len(window_df))
                 pop_col = []
-                for id_ in ids:
+                for id_ in tqdm(ids, desc="Calculating item popularity"):
                     id_df = window_df[window_df.id == id_]
                     if items_count != 0.0:
                         pop_col.append(len(id_df) / items_count)

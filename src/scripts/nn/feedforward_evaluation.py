@@ -51,7 +51,7 @@ def main():
                         default=None)
     args = parser.parse_args()
 
-    data = pd.read_csv(args.input)
+    data = pd.read_csv(args.input, header=None)
 
     if args.unpickle_file is not None:
         with open(args.unpickle_file, "rb") as unpickle_file:
