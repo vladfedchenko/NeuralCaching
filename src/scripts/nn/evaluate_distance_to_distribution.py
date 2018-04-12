@@ -123,6 +123,10 @@ def main():
             practice_hit += pred_item_pop
             f.write(f"{theory_hit} {practice_hit}\n")
 
+    if args.pickle_file is not None:
+        with open(args.pickle_file, "wb") as pickle_file:
+            pickle.dump(nn, pickle_file)
+
 
 if __name__ == "__main__":
     main()

@@ -313,6 +313,7 @@ class CountMinSketch:
     __count_min_cells = 0
     __min_sketch_buckets = None
     __hash_additions = None
+    __requests = 0
 
     # endregion
 
@@ -335,17 +336,18 @@ class CountMinSketch:
         self.__count_min_cells = count_min_cells
         self.__min_sketch_buckets = np.matrix([[0] * count_min_cells for _ in range(hash_func_num)])
         self.__hash_additions = [str(hash(str(i))) for i in range(hash_func_num)]
+        self.__requests = 0
 
     @staticmethod
-    def construct_by_constraints(overcount_perc: float):
+    def construct_by_constraints(additive_factor: float=0.001, probability: float=0.99):
         """
-        Construct a count-min sketch instance by epsilon constraint.
-        :param overcount_perc: Maximum allowed overcount of item over the number of requests.
+        Construct a count-min sketch by constraints.
+        :param additive_factor: Overcount fraction of all requests.
+        :param probability: Probability of the difference to be under overcount.
         :return: An instance of CountMinSketch
         """
-        epsilon = overcount_perc
-        cells = 1.0 / epsilon
-        hashes = math.log(epsilon, 0.5)
+        cells = math.e / additive_factor
+        hashes = math.log(1.0/(1.0 - probability), math.e)
         return CountMinSketch(int(cells), int(hashes))
 
     # endregion
@@ -370,6 +372,7 @@ class CountMinSketch:
             hash_val = hash(hash_key)
             cell = hash_val % self.__count_min_cells
             self.__min_sketch_buckets[i, cell] += 1
+        self.__requests += 1
 
     def get_count(self, id_) -> int:
         """
@@ -385,6 +388,22 @@ class CountMinSketch:
             counts.append(self.__min_sketch_buckets[i, cell])
 
         return np.min(counts)
+
+    def get_request_number(self) -> int:
+        """
+        To get the number of requests to the count-min sketch.
+        :return: Number of requests
+        """
+        return self.__requests
+
+    def get_request_fraction(self, id_) -> float:
+        """
+        To get the approximated fraction of requests for some object out of all requests.
+        :param id_: ID of the object.
+        :return: Fraction of requests for this object.
+        """
+        count = self.get_count(id_)
+        return float(count) / self.__requests
 
     def get_counter_state(self) -> np.ndarray:
         """
