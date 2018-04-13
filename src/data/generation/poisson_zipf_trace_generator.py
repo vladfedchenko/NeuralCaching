@@ -71,7 +71,7 @@ class PoissonZipfGenerator(AbstractDistributionGenerator, AbstractTimedGenerator
         Returns next generated item.
         :return: (int, int, int) -> Time from start, time from previous, item ID.
         """
-        from_prev = np.random.poisson(self.__poisson_lam, 1)[0]
+        from_prev = np.random.exponential(self.__poisson_lam, 1)[0]
         id_ = self.__zipf_generator.get_item() + self._id_shift
         self.__time_passed += from_prev
         return self.__time_passed, from_prev, id_
@@ -127,10 +127,10 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
         self.__poisson_reappear = poisson_reappear
 
         if start_randomized:
-            self.__disappear_map = {i: [np.random.poisson(self.__poisson_disappear, 1)[0], random.random() < 0.5]
+            self.__disappear_map = {i: [np.random.exponential(self.__poisson_disappear, 1)[0], random.random() < 0.5]
                                     for i in range(id_shift + 1, id_shift + max_id + 1)}
         else:
-            self.__disappear_map = {i: [np.random.poisson(self.__poisson_disappear, 1)[0], False]
+            self.__disappear_map = {i: [np.random.exponential(self.__poisson_disappear, 1)[0], False]
                                     for i in range(id_shift + 1, id_shift + max_id + 1)}
 
         self.__last_time = 0
@@ -149,9 +149,9 @@ class DisappearingPoissonZipfGenerator(PoissonZipfGenerator):
         cur_status = self.__disappear_map[id_][1]
         while self.__disappear_map[id_][0] <= from_start:
             if cur_status:  # was missing, appeared
-                self.__disappear_map[id_][0] += np.random.poisson(self.__poisson_disappear, 1)[0]
+                self.__disappear_map[id_][0] += np.random.exponential(self.__poisson_disappear, 1)[0]
             else:  # was available, disappeared
-                self.__disappear_map[id_][0] += np.random.poisson(self.__poisson_reappear, 1)[0]
+                self.__disappear_map[id_][0] += np.random.exponential(self.__poisson_reappear, 1)[0]
             cur_status = not cur_status
         self.__disappear_map[id_][1] = cur_status
         return not cur_status
