@@ -30,10 +30,10 @@ class AbstractCache:
 
     # region Constructors
 
-    def __init__(self, size):
+    def __init__(self, size: int):
         """
         Construct a new AbstractCache object.
-        :param size: size of cache.
+        :param size: Size of cache.
         """
         self.__cache_size = size
         self.__free_cache = size

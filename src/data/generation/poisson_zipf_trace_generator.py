@@ -259,7 +259,8 @@ class PoissonShuffleZipfGenerator(PoissonZipfGenerator):
         Return distribution map. Maps item IDs to the probability to observe it.
         :return: Distribution map or None.
         """
-        probability = np.mean(super().get_distribution_map().values())
+        vals = list(super().get_distribution_map().values())
+        probability = np.mean(vals)
         return {i: probability for i in self.__shuffle_map}
 
     def next_item(self) -> (int, int, int):

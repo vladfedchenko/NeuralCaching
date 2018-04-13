@@ -9,7 +9,7 @@ from neural_nets.feedforward_nn import FeedforwardNeuralNet, sigmoid, sigmoid_de
 import argparse
 from tqdm import tqdm
 import pickle
-from data.generation import PoissonZipfGenerator
+from data.generation import PoissonZipfGenerator, PoissonShuffleZipfGenerator
 
 
 def main():
@@ -61,8 +61,21 @@ def main():
 
     # In the next section you should define a mapping of items distribution
 
-    generator = PoissonZipfGenerator(100_000, 20.0, 0.8, 0)
+    # Case 1
+    # generator = PoissonZipfGenerator(100_000, 20.0, 0.8, 0)
+    # dist_mapping = generator.get_distribution_map()
+
+    # Case 2
+    generator = PoissonZipfGenerator(50_000, 40.0, 0.8, 0)
     dist_mapping = generator.get_distribution_map()
+
+    generator2 = PoissonShuffleZipfGenerator(50_000, 40.0, 0.8, 50_000, 1_000_000)
+    dist_mapping2 = generator2.get_distribution_map()
+    for k, v in dist_mapping2.items():
+        dist_mapping[k] = v
+
+    for k, v in dist_mapping.items():
+        dist_mapping[k] = v / 2.0
 
     # End of section
 
@@ -102,10 +115,10 @@ def main():
 
             f.write(f"{dist}\n")
 
-    with open(args.output_file_distance, "w") as f:
+    with open(args.output_cache_file, "w") as f:
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-            item = data[data.ix[:, 0] == k].sample(n=1)
+            item = sample_map[k].sample(n=1)
             pop = nn.evaluate(np.matrix(item.iloc[:, 1:item.shape[1] - 1]),
                               np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))[0]
             popularities.append((k, pop))

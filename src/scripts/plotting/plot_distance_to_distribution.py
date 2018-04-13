@@ -34,6 +34,7 @@ def main():
         distance = [float(x) for x in f.readlines()]
 
     iters = range(1, len(distance) + 1)
+
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
     fig.suptitle("Feedforward NN evaluation")
 
@@ -48,8 +49,8 @@ def main():
         pred_hit = [float(line[1]) for line in lines]
 
     sub2 = plt.subplot(212)
-    best_line, = sub1.plot(range(1, len(best_hit) + 1), best_hit, "g", label="Optimal")
-    pred_min, = sub1.plot(range(1, len(pred_hit) + 1), pred_hit, "r", label="Predicted")
+    best_line, = sub2.plot(range(1, len(best_hit) + 1), best_hit, "g", label="Optimal")
+    pred_min, = sub2.plot(range(1, len(pred_hit) + 1), pred_hit, "r", label="Predicted")
 
     sub2.legend(handles=[best_line, pred_min])
     sub2.set_xlabel("Cache size")
