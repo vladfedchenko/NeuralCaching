@@ -108,6 +108,7 @@ class FeedforwardNeuralNet:
     def backpropagation_learn(self, inputs: np.matrix,
                               outputs: np.matrix,
                               learn_rate: float=0.1,
+                              stochastic: bool=True,
                               show_progress: bool=False):
         """
         Update the weights of the NN using error backward propagation algorithm.
@@ -129,7 +130,14 @@ class FeedforwardNeuralNet:
 
             error = self.__error_deriv(outp, calc_outp)
             for layer in reversed(self.__layers):
-                error = layer.backpropagate(error, learn_rate)
+                if stochastic:
+                    error = layer.backpropagate_stoch(error, learn_rate)
+                else:
+                    error = layer.backpropagate_batch(error, learn_rate)
+
+        if not stochastic:
+            for layer in reversed(self.__layers):
+                layer.update_weights()
 
     def evaluate(self,
                  inputs: np.matrix,

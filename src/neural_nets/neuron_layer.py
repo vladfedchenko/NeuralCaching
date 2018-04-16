@@ -35,6 +35,9 @@ class NeuralNetLayer:
     __inputs_mem = None
     __outputs_mem = None
 
+    __delta_weights = None
+    __samples_num = 0
+
     # endregion
 
     # region Protected variables
@@ -110,7 +113,7 @@ class NeuralNetLayer:
         self.__inputs_mem = np.concatenate(([[1.0]], inputs), axis=0)
         return self.__outputs_mem
 
-    def backpropagate(self, error: np.matrix, learn_rate: float):
+    def backpropagate_stoch(self, error: np.matrix, learn_rate: float):
         """
         Backpropagation of error and weight update for current layer.
         :param error: Errors from next layer.
@@ -122,6 +125,34 @@ class NeuralNetLayer:
 
         delta_weight = self.__inputs_mem * deltas.T * learn_rate
         self.__coef_matrix -= delta_weight
+
+        return err_to_pass
+
+    def update_weights(self):
+        """
+        Run this function after running backpropagate_batch on every sample of the batch
+        """
+        self.__coef_matrix -= self.__delta_weights / self.__samples_num
+        self.__delta_weights = None
+        self.__samples_num = 0
+
+    def backpropagate_batch(self, error: np.matrix, learn_rate: float):
+        """
+        Backpropagation of error. To update weights execute update_weights() function.
+        :param error: Errors from next layer.
+        :param learn_rate: Learning rate.
+        :return: np.matrix -> Errors to backpropagate to previous layer.
+        """
+        deltas = np.multiply(error, self.__activation_deriv(self.__outputs_mem))
+        err_to_pass = (self.__coef_matrix * deltas)[1:, :]
+
+        delta_weight = self.__inputs_mem * deltas.T * learn_rate
+
+        if self.__samples_num == 0:
+            self.__delta_weights = delta_weight
+        else:
+            self.__delta_weights += delta_weight
+        self.__samples_num += 1
 
         return err_to_pass
 
