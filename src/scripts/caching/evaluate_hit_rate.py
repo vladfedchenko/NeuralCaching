@@ -5,7 +5,7 @@ import argparse
 from tqdm import tqdm
 import pandas as pd
 import pickle
-from caching import FeedforwardNNCache, LFUCache, LRUCache, ARCache
+from caching import FeedforwardNNCache
 from caching.abstract_cache import AbstractCache
 
 

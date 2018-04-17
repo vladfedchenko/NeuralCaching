@@ -5,7 +5,7 @@ It is not a multi-use script, it is just a base for multiple cases of distributi
 """
 import pandas as pd
 import numpy as np
-from neural_nets.feedforward_nn import FeedforwardNeuralNet, sigmoid, sigmoid_deriv
+from neural_nets.feedforward_nn import FeedforwardNeuralNet
 import argparse
 from tqdm import tqdm
 import pickle
@@ -52,11 +52,20 @@ def main():
                         type=str,
                         help="pickle file to restore neural network state from at the beginning",
                         default=None)
+    parser.add_argument("-ml",
+                        "--middle_layers",
+                        type=int,
+                        help="number of middle layers",
+                        default=20)
     parser.add_argument("-mln",
                         "--middle_layer_neurons",
                         type=int,
-                        help="middle layer neuron count",
+                        help="middle layers neuron count",
                         default=20)
+    parser.add_argument("-alr",
+                        "--adaptive_learning",
+                        help="use adaptive learning rate - decrease rate if error went up",
+                        action="store_true")
     args = parser.parse_args()
 
     # In the next section you should define a mapping of items distribution
@@ -85,14 +94,19 @@ def main():
         with open(args.unpickle_file, "rb") as unpickle_file:
             nn = pickle.load(unpickle_file)
     else:
-        nn = FeedforwardNeuralNet([data.shape[1] - 2, args.middle_layer_neurons, 1],
-                                  out_activ=sigmoid,
-                                  out_activ_deriv=sigmoid_deriv)
+        layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
+        nn = FeedforwardNeuralNet(layers,
+                                  internal_activ=None,
+                                  internal_activ_deriv=None,
+                                  out_activ=None,
+                                  out_activ_deriv=None)
 
     sample_map = {}
     for k, v in tqdm(dist_mapping.items(), desc="Preprocessing dataset"):
         sample_map[k] = data[data.ix[:, 0] == k]
 
+    learning_rate = args.learning_rate
+    prev_dist = 10**10
     with open(args.output_file_distance, "w") as f:
         for _ in tqdm(range(args.iterations), desc="Running iterations"):
             if args.train_sample_size is None:
@@ -112,6 +126,9 @@ def main():
                 dist += abs(v - pop)
 
             dist /= 2.0
+            if args.adaptive_learning and dist > prev_dist:
+                learning_rate /= 2.0
+            prev_dist = dist
 
             f.write(f"{dist}\n")
 

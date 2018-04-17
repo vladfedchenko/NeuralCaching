@@ -426,7 +426,7 @@ class PriorityDict(dict):
     are their respective priorities. All dictionary methods work as expected.
     The advantage over a standard heapq-based priority queue is
     that priorities of items can be efficiently updated (amortized O(1))
-    using code as 'thedict[item] = new_priority.'
+    using code as 'the_dict[item] = new_priority.'
 
     The 'smallest' method can be used to return the object with lowest
     priority, and 'pop_smallest' also removes it.

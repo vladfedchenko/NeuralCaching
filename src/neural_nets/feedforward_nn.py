@@ -2,11 +2,14 @@
 This module contains the implementation of simple feedforward neural network.
 """
 from neural_nets.neuron_layer import NeuralNetLayer, sigmoid, sigmoid_deriv
-from types import FunctionType
+from typing import Callable, TypeVar
 import numpy as np
 from tqdm import tqdm
 import sys
 import math
+
+
+ActivationFuncType = TypeVar("ActivationFuncType", None, Callable[[float], float])
 
 
 def squared_error(y, calc_y):
@@ -42,12 +45,12 @@ class FeedforwardNeuralNet:
 
     def __init__(self,
                  neurons_list: list,
-                 internal_activ: FunctionType=sigmoid,
-                 internal_activ_deriv: FunctionType=sigmoid_deriv,
-                 out_activ: FunctionType=None,
-                 out_activ_deriv: FunctionType=None,
-                 error_func: FunctionType = squared_error,
-                 error_deriv: FunctionType=squared_error_der):
+                 internal_activ: ActivationFuncType=sigmoid,
+                 internal_activ_deriv: ActivationFuncType=sigmoid_deriv,
+                 out_activ: ActivationFuncType=None,
+                 out_activ_deriv: ActivationFuncType=None,
+                 error_func: Callable[[float, float], float]=squared_error,
+                 error_deriv: Callable[[float, float], float]=squared_error_der):
         """
         FeedforwardNeuralNet a new NeuralNetLayer object.
         :param neurons_list: List of neurons counts in layers of NN.
@@ -116,6 +119,7 @@ class FeedforwardNeuralNet:
         :param inputs: Matrix of inputs.
         :param outputs: Matrix of outputs.
         :param learn_rate: Learning rate parameter.
+        :param stochastic: Use stochastic gradient descent.
         :param show_progress: Show progress bar.
         """
         n = inputs.shape[0]
