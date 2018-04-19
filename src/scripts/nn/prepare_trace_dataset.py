@@ -44,7 +44,11 @@ def main():
                         default=None)
     parser.add_argument("-sid",
                         "--save_id",
-                        help="save id of the object",
+                        help="save id of the objects",
+                        action="store_true")
+    parser.add_argument("-src",
+                        "--save_real_count",
+                        help="save real count of the objects",
                         action="store_true")
     args = parser.parse_args()
 
@@ -69,10 +73,13 @@ def main():
                 pop_col = []
                 for id_ in tqdm(ids, desc="Calculating item popularity"):
                     id_df = window_df[window_df.id == id_]
-                    if items_count != 0.0:
-                        pop_col.append(len(id_df) / items_count)
+                    if args.save_real_count:
+                        pop_col.append(len(id_df))
                     else:
-                        pop_col.append(0.0)
+                        if items_count != 0.0:
+                            pop_col.append(len(id_df) / items_count)
+                        else:
+                            pop_col.append(0.0)
 
                 window_list.append(pop_col)
 

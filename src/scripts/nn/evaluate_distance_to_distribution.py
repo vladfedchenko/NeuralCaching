@@ -26,7 +26,7 @@ def main():
                         "--learning_rate",
                         type=float,
                         help="learning rate",
-                        default=0.1)
+                        default=0.01)
     parser.add_argument("-ts",
                         "--train_sample_size",
                         type=int,
@@ -70,6 +70,10 @@ def main():
     parser.add_argument("-alr",
                         "--adaptive_learning",
                         help="use adaptive learning rate - decrease rate if error went up",
+                        action="store_true")
+    parser.add_argument("-aef",
+                        "--alternative_error_function",
+                        help="use alternative error function - error for Poisson distribution",
                         action="store_true")
     args = parser.parse_args()
 
@@ -157,6 +161,7 @@ def main():
             item = sample_map[k].sample(n=1)
             pop = nn.evaluate(np.matrix(item.iloc[:, 1:item.shape[1] - 1]),
                               np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))[0]
+            # pop = float(np.mean(np.matrix(item.iloc[:, 1:item.shape[1] - 1])))
             popularities.append((k, pop))
 
         pops_sorted = list(sorted(popularities, key=lambda x: x[1], reverse=True))

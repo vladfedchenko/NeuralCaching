@@ -21,6 +21,10 @@ def squared_error_der(y, calc_y):
     return calc_y - y
 
 
+def poisson_error_der(y, calc_y):
+    return -1.0 + y / calc_y
+
+
 class FeedforwardNeuralNet:
     """
     FeedforwardNeuralNet is the implementation of a simple feedforward neural network.
