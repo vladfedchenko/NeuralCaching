@@ -27,13 +27,16 @@ def main():
 
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
     fig.suptitle("Item order")
+    sub1 = plt.subplot(111)
 
     with open(args.input_order_file, "r") as f:
         order = [int(x) for x in f.readlines()]
 
         x = range(1, len(order) + 1)
 
-
+        sub1.plot(x, order, "bs", markersize=0.5)
+        sub1.set_xlabel("Predicted position")
+        sub1.set_ylabel("Actual position")
 
     plt.savefig("{0}.png".format(args.plot_name))
 

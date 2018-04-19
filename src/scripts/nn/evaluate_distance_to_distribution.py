@@ -5,7 +5,7 @@ It is not a multi-use script, it is just a base for multiple cases of distributi
 """
 import pandas as pd
 import numpy as np
-from neural_nets.feedforward_nn import FeedforwardNeuralNet
+from neural_nets.feedforward_nn import FeedforwardNeuralNet, sigmoid, sigmoid_deriv
 import argparse
 from tqdm import tqdm
 import pickle
@@ -41,7 +41,12 @@ def main():
                         "--output_cache_file",
                         type=str,
                         help="file to output cache hit values",
-                        default="cache hit.txt")
+                        default="cache_hit.txt")
+    parser.add_argument("-oo",
+                        "--output_order_file",
+                        type=str,
+                        help="file to output predicted order",
+                        default="order.txt")
     parser.add_argument("-pf",
                         "--pickle_file",
                         type=str,
@@ -71,20 +76,20 @@ def main():
     # In the next section you should define a mapping of items distribution
 
     # Case 1
-    # generator = PoissonZipfGenerator(100_000, 20.0, 0.8, 0)
-    # dist_mapping = generator.get_distribution_map()
-
-    # Case 2
-    generator = PoissonZipfGenerator(50_000, 40.0, 0.8, 0)
+    generator = PoissonZipfGenerator(100_000, 20.0, 0.8, 0)
     dist_mapping = generator.get_distribution_map()
 
-    generator2 = PoissonShuffleZipfGenerator(50_000, 40.0, 0.8, 50_000, 1_000_000)
-    dist_mapping2 = generator2.get_distribution_map()
-    for k, v in dist_mapping2.items():
-        dist_mapping[k] = v
-
-    for k, v in dist_mapping.items():
-        dist_mapping[k] = v / 2.0
+    # Case 2
+    # generator = PoissonZipfGenerator(50_000, 40.0, 0.8, 0)
+    # dist_mapping = generator.get_distribution_map()
+    #
+    # generator2 = PoissonShuffleZipfGenerator(50_000, 40.0, 0.8, 50_000, 100_000_000)
+    # dist_mapping2 = generator2.get_distribution_map()
+    # for k, v in dist_mapping2.items():
+    #     dist_mapping[k] = v
+    #
+    # for k, v in dist_mapping.items():
+    #     dist_mapping[k] = v / 2.0
 
     # End of section
 
@@ -96,8 +101,8 @@ def main():
     else:
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,
-                                  internal_activ=None,
-                                  internal_activ_deriv=None,
+                                  internal_activ=sigmoid,
+                                  internal_activ_deriv=sigmoid_deriv,
                                   out_activ=None,
                                   out_activ_deriv=None)
 
@@ -108,6 +113,19 @@ def main():
     learning_rate = args.learning_rate
     prev_dist = 10**10
     with open(args.output_file_distance, "w") as f:
+
+        # dist = 0.0
+        # for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
+        #     item = sample_map[k].sample(n=1)
+        #     pop = nn.evaluate(np.matrix(item.iloc[:, 1:item.shape[1] - 1]),
+        #                       np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))[0]
+        #
+        #     dist += abs(v - pop)
+        #
+        # dist /= 2.0
+        # f.write(f"{dist}\n")
+        # f.flush()
+
         for _ in tqdm(range(args.iterations), desc="Running iterations"):
             if args.train_sample_size is None:
                 train_data = data
@@ -131,6 +149,7 @@ def main():
             prev_dist = dist
 
             f.write(f"{dist}\n")
+            f.flush()
 
     with open(args.output_cache_file, "w") as f:
         popularities = []
@@ -142,6 +161,11 @@ def main():
 
         pops_sorted = list(sorted(popularities, key=lambda x: x[1], reverse=True))
         pop_order_predicted = [x[0] for x in pops_sorted]
+
+        with open(args.output_order_file, "w") as f1:
+            for item in pop_order_predicted:
+                f1.write(f"{item}\n")
+
         pred_items_real_pops = [dist_mapping[i] for i in pop_order_predicted]
 
         distrib_pop_ordered = sorted(dist_mapping.values(), reverse=True)

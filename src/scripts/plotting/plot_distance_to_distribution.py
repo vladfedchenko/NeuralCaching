@@ -9,15 +9,17 @@ import matplotlib.pyplot as plt
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_distance",
-                        type=str,
-                        help="input data file with distance to distribution")
-    parser.add_argument("input_cache",
-                        type=str,
-                        help="input data file with cache hit")
     parser.add_argument("plot_name",
                         type=str,
                         help="plot file name")
+    parser.add_argument("-id",
+                        "--input_distance",
+                        type=str,
+                        help="input data file with distance to distribution")
+    parser.add_argument("-ic",
+                        "--input_cache",
+                        type=str,
+                        help="input data file with cache hit")
     parser.add_argument("-x",
                         "--size_x",
                         type=int,
@@ -30,31 +32,33 @@ def main():
                         default=10)
     args = parser.parse_args()
 
-    with open(args.input_distance, "r") as f:
-        distance = [float(x) for x in f.readlines()]
-
-    iters = range(1, len(distance) + 1)
-
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
     fig.suptitle("Feedforward NN evaluation")
 
-    sub1 = plt.subplot(211)
-    sub1.plot(iters, distance, "b")
-    sub1.set_xlabel("Iterations")
-    sub1.set_ylabel("Distance to distribution")
+    if args.input_distance is not None:
+        with open(args.input_distance, "r") as f:
+            distance = [float(x) for x in f.readlines()]
 
-    with open(args.input_cache, "r") as f:
-        lines = [x.split() for x in f.readlines()]
-        best_hit = [float(line[0]) for line in lines]
-        pred_hit = [float(line[1]) for line in lines]
+        iters = range(1, len(distance) + 1)
 
-    sub2 = plt.subplot(212)
-    best_line, = sub2.plot(range(1, len(best_hit) + 1), best_hit, "g", label="Optimal")
-    pred_min, = sub2.plot(range(1, len(pred_hit) + 1), pred_hit, "r", label="Predicted")
+        sub1 = plt.subplot(211)
+        sub1.plot(iters, distance, "b")
+        sub1.set_xlabel("Iterations")
+        sub1.set_ylabel("Distance to distribution")
 
-    sub2.legend(handles=[best_line, pred_min])
-    sub2.set_xlabel("Cache size")
-    sub2.set_ylabel("Hit rate")
+    if args.input_cache is not None:
+        with open(args.input_cache, "r") as f:
+            lines = [x.split() for x in f.readlines()]
+            best_hit = [float(line[0]) for line in lines]
+            pred_hit = [float(line[1]) for line in lines]
+
+        sub2 = plt.subplot(212)
+        best_line, = sub2.plot(range(1, len(best_hit) + 1), best_hit, "g", label="Optimal")
+        pred_min, = sub2.plot(range(1, len(pred_hit) + 1), pred_hit, "r", label="Predicted")
+
+        sub2.legend(handles=[best_line, pred_min])
+        sub2.set_xlabel("Cache size")
+        sub2.set_ylabel("Hit rate")
 
     plt.savefig("{0}.png".format(args.plot_name))
 
