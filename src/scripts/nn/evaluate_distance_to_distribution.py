@@ -67,33 +67,42 @@ def main():
                         type=int,
                         help="middle layers neuron count",
                         default=20)
+    parser.add_argument("--case",
+                        type=int,
+                        help="case of data popularity distribution",
+                        default=1)
     parser.add_argument("-alr",
                         "--adaptive_learning",
                         help="use adaptive learning rate - decrease rate if error went up",
                         action="store_true")
-    parser.add_argument("-aef",
-                        "--alternative_error_function",
-                        help="use alternative error function - error for Poisson distribution",
-                        action="store_true")
+    # parser.add_argument("-aef",
+    #                     "--alternative_error_function",
+    #                     help="use alternative error function - error for Poisson distribution",
+    #                     action="store_true")
     args = parser.parse_args()
 
     # In the next section you should define a mapping of items distribution
 
     # Case 1
-    generator = PoissonZipfGenerator(100_000, 20.0, 0.8, 0)
-    dist_mapping = generator.get_distribution_map()
+    if args.case == 1:
+        generator = PoissonZipfGenerator(100_000, 20.0, 0.8, 0)
+        dist_mapping = generator.get_distribution_map()
 
     # Case 2
-    # generator = PoissonZipfGenerator(50_000, 40.0, 0.8, 0)
-    # dist_mapping = generator.get_distribution_map()
-    #
-    # generator2 = PoissonShuffleZipfGenerator(50_000, 40.0, 0.8, 50_000, 100_000_000)
-    # dist_mapping2 = generator2.get_distribution_map()
-    # for k, v in dist_mapping2.items():
-    #     dist_mapping[k] = v
-    #
-    # for k, v in dist_mapping.items():
-    #     dist_mapping[k] = v / 2.0
+    elif args.case == 2:
+        generator = PoissonZipfGenerator(50_000, 40.0, 0.8, 0)
+        dist_mapping = generator.get_distribution_map()
+
+        generator2 = PoissonShuffleZipfGenerator(50_000, 40.0, 0.8, 50_000, 100_000_000)
+        dist_mapping2 = generator2.get_distribution_map()
+        for k, v in dist_mapping2.items():
+            dist_mapping[k] = v
+
+        for k, v in dist_mapping.items():
+            dist_mapping[k] = v / 2.0
+
+    else:
+        raise AttributeError("Unknown case passed")
 
     # End of section
 
@@ -105,8 +114,8 @@ def main():
     else:
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,
-                                  internal_activ=sigmoid,
-                                  internal_activ_deriv=sigmoid_deriv,
+                                  internal_activ=None,
+                                  internal_activ_deriv=None,
                                   out_activ=None,
                                   out_activ_deriv=None)
 
@@ -137,13 +146,12 @@ def main():
                 train_data = data.sample(n=args.train_sample_size)
             inp = np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1])
             outp = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
-            nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True)
+            nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
 
             dist = 0.0
             for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
                 item = sample_map[k].sample(n=1)
-                pop = nn.evaluate(np.matrix(item.iloc[:, 1:item.shape[1] - 1]),
-                                  np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))[0]
+                pop = float(nn.feedforward(np.matrix(item.iloc[:, 1:item.shape[1] - 1]).T))
 
                 dist += abs(v - pop)
 
@@ -159,8 +167,7 @@ def main():
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
             item = sample_map[k].sample(n=1)
-            pop = nn.evaluate(np.matrix(item.iloc[:, 1:item.shape[1] - 1]),
-                              np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))[0]
+            pop = float(nn.feedforward(np.matrix(item.iloc[:, 1:item.shape[1] - 1]).T))
             # pop = float(np.mean(np.matrix(item.iloc[:, 1:item.shape[1] - 1])))
             popularities.append((k, pop))
 

@@ -67,7 +67,7 @@ def main():
                 train_data = data.sample(n=args.train_sample_size)
             inp = np.matrix(train_data.iloc[:, 0:train_data.shape[1] - 1])
             outp = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
-            nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True)
+            nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
 
             if args.eval_sample_size is None:
                 eval_data = data
@@ -78,12 +78,14 @@ def main():
 
             mean_acc, deviation, min_acc, max_acc = nn.evaluate(inp, outp, show_progress=True)
             f.write(f"{mean_acc} {deviation} {min_acc} {max_acc}\n")
+            f.flush()
 
         inp = np.matrix(data.iloc[:, 0:data.shape[1] - 1])
         outp = np.matrix(data.iloc[:, data.shape[1] - 1:data.shape[1]])
 
         mean_acc, deviation, min_acc, max_acc = nn.evaluate(inp, outp, show_progress=True)
         f.write(f"{mean_acc} {deviation} {min_acc} {max_acc}\n")
+        f.flush()
 
     if args.pickle_file is not None:
         with open(args.pickle_file, "wb") as pickle_file:

@@ -88,6 +88,13 @@ class NeuralNetLayer:
 
     # region Public methods
 
+    def get_coefficients(self) -> np.matrix:
+        """
+        Get copy of this layer coefficients.
+        :return: Matrix of coefficients.
+        """
+        return self.__coef_matrix.copy()
+
     def propagate(self, inputs: np.matrix):
         """
         Takes a column-vector of layer inputs and produces a column-vector of layer outputs.

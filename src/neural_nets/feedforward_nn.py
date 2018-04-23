@@ -3,6 +3,7 @@ This module contains the implementation of simple feedforward neural network.
 """
 from neural_nets.neuron_layer import NeuralNetLayer, sigmoid, sigmoid_deriv
 from typing import Callable, TypeVar
+from typing import List
 import numpy as np
 from tqdm import tqdm
 import sys
@@ -100,6 +101,16 @@ class FeedforwardNeuralNet:
     # endregion
 
     # region Public methods
+
+    def get_weights(self) -> List[np.matrix]:
+        """
+        Get weights of the NN.
+        :return: List of matrices which are weights of the layers of the NN.
+        """
+        to_ret = []
+        for layer in self.__layers:
+            to_ret.append(layer.get_coefficients())
+        return to_ret
 
     def feedforward(self, inputs: np.matrix):
         """

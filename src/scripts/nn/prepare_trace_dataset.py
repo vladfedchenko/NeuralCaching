@@ -14,6 +14,7 @@ def write_batch(out_file, data_matrix):
         str_line = [str(i) for i in line.flat]
         str_to_write = ','.join(str_line) + '\n'
         out_file.write(str_to_write)
+    out_file.flush()
 
 
 def main():
