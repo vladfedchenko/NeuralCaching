@@ -55,7 +55,7 @@ def main():
 
     input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
 
-    time_processed = input_df.iloc[:, 0].min()
+    time_processed = input_df.from_start.min() + args.window_size
     max_time = input_df.iloc[:, 0].max()
 
     cm_sketches = []
@@ -63,8 +63,8 @@ def main():
     with open(args.output, 'w') as out_file:
         with tqdm(total=max_time - time_processed, desc="Processing trace") as prog_bar:
             while time_processed < max_time - args.window_size:
-                window_df = input_df[input_df.from_start >= time_processed][input_df.from_start
-                                                                            < time_processed + args.window_size]
+                input_df = input_df[input_df.from_start >= time_processed - args.window_size]
+                window_df = input_df[input_df.from_start < time_processed]
 
                 cm_cur = CountMinSketch.construct_by_constraints(0.001, 0.99)
 
@@ -98,6 +98,7 @@ def main():
                         to_write.append(cm_sketches[-1].get_request_fraction(id_))
 
                         write_row(out_file, to_write)
+                    out_file.flush()
 
                 prev_win_df = window_df
                 time_processed += args.window_size
