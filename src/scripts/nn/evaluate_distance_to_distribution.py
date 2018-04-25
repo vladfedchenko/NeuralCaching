@@ -116,8 +116,8 @@ def main():
         nn = FeedforwardNeuralNet(layers,
                                   internal_activ=sigmoid,
                                   internal_activ_deriv=sigmoid_deriv,
-                                  out_activ=sigmoid,
-                                  out_activ_deriv=sigmoid_deriv)
+                                  out_activ=None,
+                                  out_activ_deriv=None)
 
     sample_map = {}
     for k, v in tqdm(dist_mapping.items(), desc="Preprocessing dataset"):

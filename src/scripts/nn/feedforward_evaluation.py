@@ -59,6 +59,15 @@ def main():
                         type=int,
                         help="middle layers neuron count",
                         default=2)
+    parser.add_argument("-al",
+                        "--adaptive_learning",
+                        help="use adaptive learning rate - decrease rate if error went up",
+                        action="store_true")
+    parser.add_argument("-all",
+                        "--adaptive_learning_log",
+                        help="adaptive learning log",
+                        type=str,
+                        default=None)
     args = parser.parse_args()
 
     data = pd.read_csv(args.input, header=None)
@@ -74,15 +83,22 @@ def main():
                                   out_activ=sigmoid,
                                   out_activ_deriv=sigmoid_deriv)
 
+    prev_acc = 10.0**10
+    learning_rate = args.learning_rate
     with open(args.output_file, "w") as f:
-        for _ in tqdm(range(args.iterations), desc="Running iterations"):
+        log = None
+        if args.adaptive_learning_log is not None:
+            log = open(args.adaptive_learning_log, "w")
+
+        for i in tqdm(range(args.iterations), desc="Running iterations"):
             if args.train_sample_size is None:
                 train_data = data
             else:
                 train_data = data.sample(n=args.train_sample_size)
             inp = np.matrix(train_data.iloc[:, 0:train_data.shape[1] - 1])
             outp = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
-            nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
+
+            nn.backpropagation_learn(inp, outp, learning_rate, show_progress=True, stochastic=True)
 
             if args.eval_sample_size is None:
                 eval_data = data
@@ -92,8 +108,20 @@ def main():
             outp = np.matrix(eval_data.iloc[:, eval_data.shape[1] - 1:eval_data.shape[1]])
 
             mean_acc, deviation, min_acc, max_acc = nn.evaluate(inp, outp, show_progress=True)
+
+            if args.adaptive_learning and mean_acc > prev_acc:
+                learning_rate /= 2.0
+                if args.adaptive_learning_log is not None:
+                    log.write(f"{i} {learning_rate}\n")
+                    log.flush()
+
+            prev_acc = mean_acc
+
             f.write(f"{mean_acc} {deviation} {min_acc} {max_acc}\n")
             f.flush()
+
+        if args.adaptive_learning_log is not None:
+            log.close()
 
         inp = np.matrix(data.iloc[:, 0:data.shape[1] - 1])
         outp = np.matrix(data.iloc[:, data.shape[1] - 1:data.shape[1]])
