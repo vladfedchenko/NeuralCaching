@@ -77,7 +77,7 @@ def main():
                     cm_sketches.pop(0)
 
                 if len(cm_sketches) == args.prediction_sketches + 1:
-                    prev_win_start = time_processed - args.window_size
+                    prev_win_start = time_processed - 2.0 * args.window_size
                     prev_cm = CountMinSketch.construct_by_constraints(0.001, 0.99)
                     for index, row in tqdm(prev_win_df.iterrows(), desc="Producing DS entries"):
                         to_write = []

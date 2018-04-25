@@ -49,6 +49,16 @@ def main():
                         type=str,
                         help="pickle file to restore neural network state from at the beginning",
                         default=None)
+    parser.add_argument("-ml",
+                        "--middle_layers",
+                        type=int,
+                        help="number of middle layers",
+                        default=20)
+    parser.add_argument("-mln",
+                        "--middle_layer_neurons",
+                        type=int,
+                        help="middle layers neuron count",
+                        default=2)
     args = parser.parse_args()
 
     data = pd.read_csv(args.input, header=None)
@@ -57,7 +67,12 @@ def main():
         with open(args.unpickle_file, "rb") as unpickle_file:
             nn = pickle.load(unpickle_file)
     else:
-        nn = FeedforwardNeuralNet([data.shape[1] - 1, 20, 1], out_activ=sigmoid, out_activ_deriv=sigmoid_deriv)
+        layers = [data.shape[1] - 1] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
+        nn = FeedforwardNeuralNet(layers,
+                                  internal_activ=sigmoid,
+                                  internal_activ_deriv=sigmoid_deriv,
+                                  out_activ=sigmoid,
+                                  out_activ_deriv=sigmoid_deriv)
 
     with open(args.output_file, "w") as f:
         for _ in tqdm(range(args.iterations), desc="Running iterations"):

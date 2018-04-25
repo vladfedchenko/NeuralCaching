@@ -91,7 +91,10 @@ def main():
                     data_matrix = np.matrix(window_list).T
                     if ids_class is not None:
                         ids_class_matrix = np.matrix([ids_class]).T
-                        data_matrix = np.concatenate((ids_class_matrix, data_matrix), axis=1)
+                        ids_inverted_matrix = 1.0 - ids_class_matrix
+                        left = np.multiply(data_matrix[:, :-1], ids_inverted_matrix)
+                        right = np.multiply(data_matrix[:, :-1], ids_class_matrix)
+                        data_matrix = np.concatenate((left, right, data_matrix[:, -1:]), axis=1)
 
                     if args.save_id:
                         ids_matr = np.matrix([ids]).T

@@ -66,7 +66,7 @@ def main():
                         "--middle_layer_neurons",
                         type=int,
                         help="middle layers neuron count",
-                        default=20)
+                        default=2)
     parser.add_argument("--case",
                         type=int,
                         help="case of data popularity distribution",
@@ -114,10 +114,10 @@ def main():
     else:
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,
-                                  internal_activ=None,
-                                  internal_activ_deriv=None,
-                                  out_activ=None,
-                                  out_activ_deriv=None)
+                                  internal_activ=sigmoid,
+                                  internal_activ_deriv=sigmoid_deriv,
+                                  out_activ=sigmoid,
+                                  out_activ_deriv=sigmoid_deriv)
 
     sample_map = {}
     for k, v in tqdm(dist_mapping.items(), desc="Preprocessing dataset"):
