@@ -27,16 +27,31 @@ def main():
 
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
     fig.suptitle("Item order")
-    sub1 = plt.subplot(111)
+    sub1 = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
 
     with open(args.input_order_file, "r") as f:
-        order = [int(x) for x in f.readlines()]
+        lines = [x.split() for x in f.readlines()]
 
-        x = range(1, len(order) + 1)
+        order = [int(x[0]) for x in lines]
+        pred_pops = [float(x[1]) for x in lines]
+        real_pops = [float(x[2]) for x in lines]
 
-        sub1.plot(x, order, "bs", markersize=0.5)
-        sub1.set_xlabel("Predicted position")
-        sub1.set_ylabel("Actual position")
+    x = range(1, len(order) + 1)
+
+    sub1.plot(x, order, "bs", markersize=0.5)
+    sub1.set_xlabel("Predicted position")
+    sub1.set_ylabel("Actual position")
+
+    sub2 = plt.subplot2grid((3, 1), (2, 0))
+    axis = plt.gca()
+    axis.set_yscale("log")
+
+    pred_dots, = sub2.plot(order, pred_pops, "rs", markersize=0.5, label="Predicted")
+    real_dots, = sub2.plot(order, real_pops, "gs", markersize=0.5, label="Real")
+
+    sub2.legend(handles=[pred_dots, real_dots])
+    sub2.set_xlabel("Item")
+    sub2.set_ylabel("Population")
 
     plt.savefig("{0}.png".format(args.plot_name))
 

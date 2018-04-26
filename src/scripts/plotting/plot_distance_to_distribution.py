@@ -37,14 +37,21 @@ def main():
 
     if args.input_distance is not None:
         with open(args.input_distance, "r") as f:
-            distance = [float(x) for x in f.readlines()]
+            lines = [x.split() for x in f.readlines()]
+            distance = [float(x[0]) for x in lines]
+            errors = [float(x[1]) for x in lines]
 
         iters = range(1, len(distance) + 1)
 
-        sub1 = plt.subplot(211)
+        sub1 = plt.subplot2grid((2, 2), (0, 0))
         sub1.plot(iters, distance, "b")
         sub1.set_xlabel("Iterations")
         sub1.set_ylabel("Distance to distribution")
+
+        sub3 = plt.subplot2grid((2, 2), (0, 1))
+        sub3.plot(iters, errors, "b")
+        sub3.set_xlabel("Iterations")
+        sub3.set_ylabel("Error")
 
     if args.input_cache is not None:
         with open(args.input_cache, "r") as f:
@@ -52,7 +59,7 @@ def main():
             best_hit = [float(line[0]) for line in lines]
             pred_hit = [float(line[1]) for line in lines]
 
-        sub2 = plt.subplot(212)
+        sub2 = plt.subplot2grid((2, 2), (1, 0), colspan=2)
         best_line, = sub2.plot(range(1, len(best_hit) + 1), best_hit, "g", label="Optimal")
         pred_min, = sub2.plot(range(1, len(pred_hit) + 1), pred_hit, "r", label="Predicted")
 

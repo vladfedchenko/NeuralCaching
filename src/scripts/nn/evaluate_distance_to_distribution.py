@@ -114,8 +114,8 @@ def main():
     else:
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,
-                                  internal_activ=sigmoid,
-                                  internal_activ_deriv=sigmoid_deriv,
+                                  internal_activ=None,
+                                  internal_activ_deriv=None,
                                   out_activ=None,
                                   out_activ_deriv=None)
 
@@ -149,18 +149,26 @@ def main():
             nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
 
             dist = 0.0
+            err = 0.0
             for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
                 item = sample_map[k].sample(n=1)
+                inp = np.matrix(item.iloc[:, 0:item.shape[1] - 1])
+                outp = np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]])
+
+                err += nn.evaluate(inp, outp, show_progress=False)[0]
+
                 pop = float(nn.feedforward(np.matrix(item.iloc[:, 1:item.shape[1] - 1]).T))
 
                 dist += abs(v - pop)
+
+            err /= len(dist_mapping)
 
             dist /= 2.0
             if args.adaptive_learning and dist > prev_dist:
                 learning_rate /= 2.0
             prev_dist = dist
 
-            f.write(f"{dist}\n")
+            f.write(f"{dist} {err}\n")
             f.flush()
 
     with open(args.output_cache_file, "w") as f:
@@ -175,8 +183,8 @@ def main():
         pop_order_predicted = [x[0] for x in pops_sorted]
 
         with open(args.output_order_file, "w") as f1:
-            for item in pop_order_predicted:
-                f1.write(f"{item}\n")
+            for item in pops_sorted:
+                f1.write("{0} {1} {2}\n".format(item[0], item[1], dist_mapping[item[0]]))
 
         pred_items_real_pops = [dist_mapping[i] for i in pop_order_predicted]
 
