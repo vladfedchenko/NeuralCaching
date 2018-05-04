@@ -38,6 +38,12 @@ def main():
 
     x = range(1, len(order) + 1)
 
+    pred_pops_pos = [x[0] for x in zip(pred_pops, order) if x[0] >= 0.0]
+    order_pos = [x[1] for x in zip(pred_pops, order) if x[0] >= 0.0]
+
+    pred_pops_neg = [abs(x[0]) for x in zip(pred_pops, order) if x[0] < 0.0]
+    order_neg = [x[1] for x in zip(pred_pops, order) if x[0] < 0.0]
+
     sub1.plot(x, order, "bs", markersize=0.5)
     sub1.set_xlabel("Predicted position")
     sub1.set_ylabel("Actual position")
@@ -46,12 +52,15 @@ def main():
     axis = plt.gca()
     axis.set_yscale("log")
 
-    pred_dots, = sub2.plot(order, pred_pops, "rs", markersize=0.5, label="Predicted")
     real_dots, = sub2.plot(order, real_pops, "gs", markersize=0.5, label="Real")
+    pred_dots_neg, = sub2.plot(order_neg, pred_pops_neg, "rs", markersize=0.5, label="Predicted (negative, abs)")
+    pred_dots_pos, = sub2.plot(order_pos, pred_pops_pos, "bs", markersize=0.5, label="Predicted (positive)")
 
-    sub2.legend(handles=[pred_dots, real_dots])
+    #print(pred_pops[100000 - 1])
+
+    sub2.legend(handles=[pred_dots_pos, pred_dots_neg, real_dots])
     sub2.set_xlabel("Item")
-    sub2.set_ylabel("Population")
+    sub2.set_ylabel("Popularity")
 
     plt.savefig("{0}.png".format(args.plot_name))
 

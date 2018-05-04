@@ -152,7 +152,7 @@ def main():
             err = 0.0
             for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
                 item = sample_map[k].sample(n=1)
-                inp = np.matrix(item.iloc[:, 0:item.shape[1] - 1])
+                inp = np.matrix(item.iloc[:, 1:item.shape[1] - 1])
                 outp = np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]])
 
                 err += nn.evaluate(inp, outp, show_progress=False)[0]
