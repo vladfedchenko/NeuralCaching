@@ -36,6 +36,11 @@ def main():
         pred_pops = [float(x[1]) for x in lines]
         real_pops = [float(x[2]) for x in lines]
 
+    tmp = [x[0] for x in sorted(sorted(zip(order, real_pops), key=lambda x: x[0]), key=lambda x: x[1], reverse=True)]
+    order_map = {x[1]: x[0] for x in zip(range(1, len(tmp) + 1), tmp)}
+
+    order_by_pop = [order_map[x] for x in order]
+
     x = range(1, len(order) + 1)
 
     pred_pops_pos = [x[0] for x in zip(pred_pops, order) if x[0] >= 0.0]
@@ -44,9 +49,9 @@ def main():
     pred_pops_neg = [abs(x[0]) for x in zip(pred_pops, order) if x[0] < 0.0]
     order_neg = [x[1] for x in zip(pred_pops, order) if x[0] < 0.0]
 
-    sub1.plot(x, order, "bs", markersize=0.5)
-    sub1.set_xlabel("Predicted position")
-    sub1.set_ylabel("Actual position")
+    sub1.plot(x, order_by_pop, "bs", markersize=0.5)
+    sub1.set_xlabel("Actual position")
+    sub1.set_ylabel("Predicted position")
 
     sub2 = plt.subplot2grid((3, 1), (2, 0))
     axis = plt.gca()
@@ -55,8 +60,6 @@ def main():
     real_dots, = sub2.plot(order, real_pops, "gs", markersize=0.5, label="Real")
     pred_dots_neg, = sub2.plot(order_neg, pred_pops_neg, "rs", markersize=0.5, label="Predicted (negative, abs)")
     pred_dots_pos, = sub2.plot(order_pos, pred_pops_pos, "bs", markersize=0.5, label="Predicted (positive)")
-
-    #print(pred_pops[100000 - 1])
 
     sub2.legend(handles=[pred_dots_pos, pred_dots_neg, real_dots])
     sub2.set_xlabel("Item")
