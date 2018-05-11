@@ -113,7 +113,7 @@ def main():
         fig.suptitle("Item order")
         sub1 = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
 
-        sub1.plot(x, order_by_pop, "bs", markersize=0.5)
+        sub1.plot(order_by_pop, x, "bs", markersize=0.5)
         sub1.set_xlabel("Actual position")
         sub1.set_ylabel("Predicted position")
 
