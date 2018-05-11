@@ -26,6 +26,16 @@ def main():
                         type=int,
                         help="plot size in y axis",
                         default=10)
+    parser.add_argument("-xo",
+                        "--size_xo",
+                        type=int,
+                        help="order plot size in x axis",
+                        default=10)
+    parser.add_argument("-yo",
+                        "--size_yo",
+                        type=int,
+                        help="order plot size in y axis",
+                        default=15)
     args = parser.parse_args()
 
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
@@ -98,6 +108,10 @@ def main():
 
         pred_pops_neg = [abs(x[0]) for x in zip(pred_pops, order) if x[0] < 0.0]
         order_neg = [x[1] for x in zip(pred_pops, order) if x[0] < 0.0]
+
+        fig = plt.figure(2, figsize=(args.size_xo, args.size_yo))
+        fig.suptitle("Item order")
+        sub1 = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
 
         sub1.plot(x, order_by_pop, "bs", markersize=0.5)
         sub1.set_xlabel("Actual position")
