@@ -83,15 +83,15 @@ def main():
 
     # Case 1
     if args.case == 1:
-        generator = PoissonZipfGenerator(100_000, 20.0, 0.8, 0)
+        generator = PoissonZipfGenerator(10_000, 20.0, 0.8, 0)
         dist_mapping = generator.get_distribution_map()
 
     # Case 2
     elif args.case == 2:
-        generator = PoissonZipfGenerator(50_000, 40.0, 0.8, 0)
+        generator = PoissonZipfGenerator(5_000, 40.0, 0.8, 0)
         dist_mapping = generator.get_distribution_map()
 
-        generator2 = PoissonShuffleZipfGenerator(50_000, 40.0, 0.8, 50_000, 100_000_000)
+        generator2 = PoissonShuffleZipfGenerator(5_000, 40.0, 0.8, 5_000, 10_000_000)
         dist_mapping2 = generator2.get_distribution_map()
         for k, v in dist_mapping2.items():
             dist_mapping[k] = v
