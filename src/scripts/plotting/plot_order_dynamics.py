@@ -9,9 +9,6 @@ import re
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("plot_prefix",
-                        type=str,
-                        help="plot file name prefix")
     parser.add_argument("directory",
                         type=str,
                         help="directory with data files")
@@ -76,9 +73,7 @@ def main():
             sub2.set_xlabel("Item")
             sub2.set_ylabel("Popularity")
 
-            plt.savefig("{0}{1}{2}.png".format(os.path.join(args.directory, args.plot_prefix),
-                                               "_order_plot_",
-                                               num))
+            plt.savefig("{0}{1}.png".format(os.path.join(args.directory, "order_plot_"), num))
 
 
 if __name__ == "__main__":

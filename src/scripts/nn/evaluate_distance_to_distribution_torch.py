@@ -11,6 +11,7 @@ from tqdm import tqdm
 import pickle
 from data.generation import PoissonZipfGenerator, PoissonShuffleZipfGenerator
 import torch
+import os
 
 
 def main():
@@ -18,6 +19,9 @@ def main():
     parser.add_argument("input",
                         type=str,
                         help="input dataset")
+    parser.add_argument("directory",
+                        type=str,
+                        help="directory to store data files")
     parser.add_argument("-i",
                         "--iterations",
                         type=int,
@@ -33,30 +37,15 @@ def main():
                         type=int,
                         help="number of samples to use on learning step. If not passed - whole dataset is used",
                         default=None)
-    parser.add_argument("-od",
-                        "--output_file_distance",
-                        type=str,
-                        help="file to output distance values",
-                        default="distance.txt")
-    parser.add_argument("-oc",
-                        "--output_cache_file",
-                        type=str,
-                        help="file to output cache hit values",
-                        default="cache_hit.txt")
-    parser.add_argument("-oo",
-                        "--output_order_file",
-                        type=str,
-                        help="file to output predicted order",
-                        default="order.txt")
     parser.add_argument("-pf",
                         "--pickle_file",
-                        type=str,
-                        help="pickle file to dump neural network state after learning state",
+                        type=int,
+                        help="pickle file index to dump neural network state after learning",
                         default=None)
     parser.add_argument("-uf",
                         "--unpickle_file",
-                        type=str,
-                        help="pickle file to restore neural network state from at the beginning",
+                        type=int,
+                        help="pickle file index to restore neural network state from at the beginning",
                         default=None)
     parser.add_argument("-ml",
                         "--middle_layers",
@@ -117,8 +106,13 @@ def main():
 
     data = pd.read_csv(args.input, header=None)
 
+    if not os.path.exists(args.directory):
+        os.makedirs(args.directory)
+
     if args.unpickle_file is not None:
-        with open(args.unpickle_file, "rb") as unpickle_file:
+        filename = "distance_nn_{0}.p".format(args.unpickle_file)
+        filename = os.path.join(args.directory, filename)
+        with open(filename, "rb") as unpickle_file:
             nn = pickle.load(unpickle_file)
     else:
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
@@ -133,7 +127,8 @@ def main():
     learning_rate = args.learning_rate
     prev_dist = 10**10
 
-    with open(args.output_file_distance, "w") as f:
+    dist_file = os.path.join(args.directory, "distance.txt")
+    with open(dist_file, "w") as f:
 
         # dist = 0.0
         # for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
@@ -179,7 +174,8 @@ def main():
             f.write(f"{dist} {err}\n")
             f.flush()
 
-    with open(args.output_cache_file, "w") as f:
+    cache_file = os.path.join(args.directory, "cache_hit.txt")
+    with open(cache_file, "w") as f:
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
             item = sample_map[k].sample(n=1)
@@ -190,7 +186,8 @@ def main():
         pops_sorted = list(sorted(popularities, key=lambda x: x[1], reverse=True))
         pop_order_predicted = [x[0] for x in pops_sorted]
 
-        with open(args.output_order_file, "w") as f1:
+        order_file = os.path.join(args.directory, "order.txt")
+        with open(order_file, "w") as f1:
             for item in pops_sorted:
                 f1.write("{0} {1} {2}\n".format(item[0], item[1], dist_mapping[item[0]]))
 
@@ -206,7 +203,9 @@ def main():
             f.write(f"{theory_hit} {practice_hit}\n")
 
     if args.pickle_file is not None:
-        with open(args.pickle_file, "wb") as pickle_file:
+        filename = "distance_nn_{0}.p".format(args.pickle_file)
+        filename = os.path.join(args.directory, filename)
+        with open(filename, "wb") as pickle_file:
             pickle.dump(nn, pickle_file)
 
 

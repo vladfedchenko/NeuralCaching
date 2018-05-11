@@ -16,9 +16,6 @@ def main():
     parser.add_argument("input",
                         type=str,
                         help="input dataset")
-    parser.add_argument("data_prefix",
-                        type=str,
-                        help="data file names prefix")
     parser.add_argument("directory",
                         type=str,
                         help="directory with data files")
@@ -36,6 +33,16 @@ def main():
                         "--train_sample_size",
                         type=int,
                         help="number of samples to use on learning step. If not passed - whole dataset is used",
+                        default=None)
+    parser.add_argument("-pf",
+                        "--pickle_file",
+                        type=int,
+                        help="pickle file index to dump neural network state after learning",
+                        default=None)
+    parser.add_argument("-uf",
+                        "--unpickle_file",
+                        type=int,
+                        help="pickle file index to restore neural network state from at the beginning",
                         default=None)
     parser.add_argument("-ml",
                         "--middle_layers",
@@ -66,15 +73,15 @@ def main():
 
     # Case 1
     if args.case == 1:
-        generator = PoissonZipfGenerator(100_000, 20.0, 0.8, 0)
+        generator = PoissonZipfGenerator(10_000, 20.0, 0.8, 0)
         dist_mapping = generator.get_distribution_map()
 
     # Case 2
     elif args.case == 2:
-        generator = PoissonZipfGenerator(50_000, 40.0, 0.8, 0)
+        generator = PoissonZipfGenerator(5_000, 40.0, 0.8, 0)
         dist_mapping = generator.get_distribution_map()
 
-        generator2 = PoissonShuffleZipfGenerator(50_000, 40.0, 0.8, 50_000, 100_000_000)
+        generator2 = PoissonShuffleZipfGenerator(5_000, 40.0, 0.8, 5_000, 10_000_000)
         dist_mapping2 = generator2.get_distribution_map()
         for k, v in dist_mapping2.items():
             dist_mapping[k] = v
@@ -87,31 +94,31 @@ def main():
 
     data = pd.read_csv(args.input, header=None)
 
-    nn = None
-    for root, dirs, files in os.walk(args.directory):
-        nets = [f for f in files if f.endswith(".p")][::-1]
-        if len(nets) > 0:
-            nn = pickle.load(os.path.join(args.directory, nets[-1]))
-        else:
-            act_hid = None
-            act_hid_deriv = None
-            act_out = None
-            act_out_deriv = None
+    if args.unpickle_file is not None:
+        filename = "order_nn_{0}.p".format(args.unpickle_file)
+        filename = os.path.join(args.directory, filename)
+        with open(filename, "rb") as unpickle_file:
+            nn = pickle.load(unpickle_file)
+    else:
+        act_hid = None
+        act_hid_deriv = None
+        act_out = None
+        act_out_deriv = None
 
-            if args.sigmoid_hidden_layers:
-                act_hid = sigmoid
-                act_hid_deriv = sigmoid_deriv
+        if args.sigmoid_hidden_layers:
+            act_hid = sigmoid
+            act_hid_deriv = sigmoid_deriv
 
-            if args.sigmoid_output_layers:
-                act_out = sigmoid
-                act_out_deriv = sigmoid_deriv
+        if args.sigmoid_output_layers:
+            act_out = sigmoid
+            act_out_deriv = sigmoid_deriv
 
-            layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
-            nn = FeedforwardNeuralNet(layers,
-                                      internal_activ=act_hid,
-                                      internal_activ_deriv=act_hid_deriv,
-                                      out_activ=act_out,
-                                      out_activ_deriv=act_out_deriv)
+        layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
+        nn = FeedforwardNeuralNet(layers,
+                                  internal_activ=act_hid,
+                                  internal_activ_deriv=act_hid_deriv,
+                                  out_activ=act_out,
+                                  out_activ_deriv=act_out_deriv)
 
     assert(nn is not None)
 
@@ -121,7 +128,7 @@ def main():
 
     for i in tqdm(range(args.iterations + 1), desc="Running iterations"):
 
-        filename = "{0}{1}{2}.txt".format(args.data_prefix, "_order_", i)
+        filename = "{0}{1}.txt".format("order_", i)
         filename = os.path.join(args.directory, filename)
 
         with open(filename, "w") as f:
@@ -145,10 +152,8 @@ def main():
         outp = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
         nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
 
-    for root, dirs, files in os.walk(args.directory):
-        nets = [f for f in files if f.endswith(".p")]
-        k = len(nets) + 1
-        filename = "{0}{1}{2}.p".format(args.data_prefix, "_order_nn_", k)
+    if args.pickle_file is not None:
+        filename = "order_nn_{0}.p".format(args.pickle_file)
         filename = os.path.join(args.directory, filename)
         with open(filename, "wb") as pickle_file:
             pickle.dump(nn, pickle_file)

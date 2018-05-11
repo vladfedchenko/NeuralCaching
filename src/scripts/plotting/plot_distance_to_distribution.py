@@ -10,9 +10,6 @@ import os
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("plot_prefix",
-                        type=str,
-                        help="plot file name prefix")
     parser.add_argument("directory",
                         type=str,
                         help="directory with data files")
@@ -86,7 +83,7 @@ def main():
         sub2.set_xlabel("Cache size")
         sub2.set_ylabel("Hit rate")
 
-    plt.savefig("{0}{1}.png".format(os.path.join(args.directory, args.plot_prefix), "_dist_plot"))
+    plt.savefig(os.path.join(args.directory, "dist_plot.png"))
 
     if order_file is not None:
         with open(order_file, "r") as f:
@@ -129,7 +126,7 @@ def main():
         sub2.set_xlabel("Item")
         sub2.set_ylabel("Popularity")
 
-        plt.savefig("{0}{1}.png".format(os.path.join(args.directory, args.plot_prefix), "_order_plot"))
+        plt.savefig(os.path.join(args.directory, "order_plot.png"))
 
 
 if __name__ == "__main__":
