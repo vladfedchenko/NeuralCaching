@@ -43,6 +43,14 @@ def main():
                               "mixed. If passed then every row will have class label"),
                         type=int,
                         default=None)
+    parser.add_argument("-li",
+                        "--log_input",
+                        help="transform the input data to log(x + 1)",
+                        action="store_true")
+    parser.add_argument("-lo",
+                        "--log_output",
+                        help="transform the output data to log(y + 1)",
+                        action="store_true")
     parser.add_argument("-sid",
                         "--save_id",
                         help="save id of the objects",
@@ -89,6 +97,16 @@ def main():
 
                 if len(window_list) == args.window_group_size:
                     data_matrix = np.matrix(window_list).T
+
+                    data_inp = data_matrix[:, :-1]
+                    data_outp = data_matrix[:, -1:]
+                    if args.log_input:
+                        data_inp = np.log(data_inp + 10**-5)
+                    if args.log_output:
+                        data_outp = np.log(data_outp + 10**-5)
+
+                    data_matrix = np.concatenate((data_inp, data_outp), axis=1)
+
                     if ids_class is not None:
                         ids_class_matrix = np.matrix([ids_class]).T
                         # ids_inverted_matrix = 1.0 - ids_class_matrix

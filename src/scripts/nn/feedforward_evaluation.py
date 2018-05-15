@@ -7,6 +7,7 @@ from neural_nets.feedforward_nn import FeedforwardNeuralNet, sigmoid, sigmoid_de
 import argparse
 from tqdm import tqdm
 import pickle
+import os
 
 
 def main():
@@ -14,6 +15,9 @@ def main():
     parser.add_argument("input",
                         type=str,
                         help="input dataset")
+    parser.add_argument("directory",
+                        type=str,
+                        help="directory to store data files")
     parser.add_argument("-i",
                         "--iterations",
                         type=int,
@@ -23,31 +27,26 @@ def main():
                         "--learning_rate",
                         type=float,
                         help="learning rate",
-                        default=0.1)
-    parser.add_argument("-ts",
-                        "--train_sample_size",
+                        default=0.01)
+    parser.add_argument("-s",
+                        "--sample",
                         type=int,
-                        help="fraction of samples to use on learning step. If not passed - whole dataset is used",
+                        help="number of samples to use from dataset. If not passed - whole dataset is used",
                         default=None)
-    parser.add_argument("-es",
-                        "--eval_sample_size",
-                        type=int,
-                        help="fraction of samples to use on evaluation step. If not passed - whole dataset is used",
-                        default=None)
-    parser.add_argument("-o",
-                        "--output_file",
-                        type=str,
-                        help="file to output accuracy values",
-                        default="accuracy.txt")
+    parser.add_argument("-tvs",
+                        "--train_validation_split",
+                        type=float,
+                        help="train - validation split fraction",
+                        default=0.8)
     parser.add_argument("-pf",
                         "--pickle_file",
-                        type=str,
-                        help="pickle file to dump neural network state after learning state",
+                        type=int,
+                        help="pickle file index to dump neural network state after learning",
                         default=None)
     parser.add_argument("-uf",
                         "--unpickle_file",
-                        type=str,
-                        help="pickle file to restore neural network state from at the beginning",
+                        type=int,
+                        help="pickle file index to restore neural network state from at the beginning",
                         default=None)
     parser.add_argument("-ml",
                         "--middle_layers",
@@ -59,79 +58,92 @@ def main():
                         type=int,
                         help="middle layers neuron count",
                         default=2)
-    parser.add_argument("-al",
-                        "--adaptive_learning",
-                        help="use adaptive learning rate - decrease rate if error went up",
+    parser.add_argument("-shl",
+                        "--sigmoid_hidden_layers",
+                        help="use sigmoid on hidden layers",
                         action="store_true")
-    parser.add_argument("-all",
-                        "--adaptive_learning_log",
-                        help="adaptive learning log",
-                        type=str,
-                        default=None)
+    parser.add_argument("-sol",
+                        "--sigmoid_output_layers",
+                        help="use sigmoid on output layer",
+                        action="store_true")
+    parser.add_argument("-ihl",
+                        "--input_has_labels",
+                        help="pass this is input has class label. Needed for optimal predictor evaluation",
+                        action="store_true")
     args = parser.parse_args()
+
+    if not os.path.exists(args.directory):
+        os.makedirs(args.directory)
 
     data = pd.read_csv(args.input, header=None)
 
+    if args.sample:
+        data = data.sample(n=args.sample)
+
+    msk = np.random.rand(len(data)) < args.train_validation_split
+
+    train_data = data[msk]
+    valid_data = data[~msk]
+
     if args.unpickle_file is not None:
-        with open(args.unpickle_file, "rb") as unpickle_file:
+        filename = "nn_{0}.p".format(args.unpickle_file)
+        filename = os.path.join(args.directory, filename)
+        with open(filename, "rb") as unpickle_file:
             nn = pickle.load(unpickle_file)
+
     else:
-        layers = [data.shape[1] - 1] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
+        act_hid = None
+        act_hid_deriv = None
+        act_out = None
+        act_out_deriv = None
+
+        if args.sigmoid_hidden_layers:
+            act_hid = sigmoid
+            act_hid_deriv = sigmoid_deriv
+
+        if args.sigmoid_output_layers:
+            act_out = sigmoid
+            act_out_deriv = sigmoid_deriv
+
+        layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,
-                                  internal_activ=sigmoid,
-                                  internal_activ_deriv=sigmoid_deriv,
-                                  out_activ=sigmoid,
-                                  out_activ_deriv=sigmoid_deriv)
+                                  internal_activ=act_hid,
+                                  internal_activ_deriv=act_hid_deriv,
+                                  out_activ=act_out,
+                                  out_activ_deriv=act_out_deriv)
 
-    prev_acc = 10.0**10
-    learning_rate = args.learning_rate
-    with open(args.output_file, "w") as f:
-        log = None
-        if args.adaptive_learning_log is not None:
-            log = open(args.adaptive_learning_log, "w")
+    inp_train = np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1])
+    outp_train = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
 
-        for i in tqdm(range(args.iterations), desc="Running iterations"):
-            if args.train_sample_size is None:
-                train_data = data
-            else:
-                train_data = data.sample(n=args.train_sample_size)
-            inp = np.matrix(train_data.iloc[:, 0:train_data.shape[1] - 1])
-            outp = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
+    inp_valid = np.matrix(valid_data.iloc[:, 1:valid_data.shape[1] - 1])
+    outp_valid = np.matrix(valid_data.iloc[:, valid_data.shape[1] - 1:valid_data.shape[1]])
 
-            nn.backpropagation_learn(inp, outp, learning_rate, show_progress=True, stochastic=True)
+    tmp = inp_valid
+    if args.input_has_labels:
+        tmp = tmp[:, 1:]
 
-            if args.eval_sample_size is None:
-                eval_data = data
-            else:
-                eval_data = data.sample(n=args.eval_sample_size)
-            inp = np.matrix(eval_data.iloc[:, 0:eval_data.shape[1] - 1])
-            outp = np.matrix(eval_data.iloc[:, eval_data.shape[1] - 1:eval_data.shape[1]])
+    tmp = np.exp(tmp) - 10**-5
+    # print(tmp[0, :], outp_valid[0, :])
 
-            mean_acc, deviation, min_acc, max_acc = nn.evaluate(inp, outp, show_progress=True)
+    mean_vals = np.mean(tmp, axis=0)
+    err = mean_vals - outp_valid
+    optim_err = np.mean(np.multiply(err, err)) / len(err)
 
-            if args.adaptive_learning and mean_acc > prev_acc:
-                learning_rate /= 2.0
-                if args.adaptive_learning_log is not None:
-                    log.write(f"{i} {learning_rate}\n")
-                    log.flush()
+    error_file = os.path.join(args.directory, "error.txt")
+    with open(error_file, "a+") as f:
+        for _ in tqdm(range(args.iterations), desc="Running iterations"):
+            nn.backpropagation_learn(inp_train, outp_train, args.learning_rate, show_progress=True, stochastic=True)
 
-            prev_acc = mean_acc
+            train_err = nn.evaluate(inp_train, outp_train, show_progress=True)[0]
+            valid_err = nn.evaluate(inp_valid, outp_valid, show_progress=True)[0]
 
-            f.write(f"{mean_acc} {deviation} {min_acc} {max_acc}\n")
+            f.write("{} {} {}\n".format(optim_err, train_err, valid_err))
             f.flush()
 
-        if args.adaptive_learning_log is not None:
-            log.close()
-
-        inp = np.matrix(data.iloc[:, 0:data.shape[1] - 1])
-        outp = np.matrix(data.iloc[:, data.shape[1] - 1:data.shape[1]])
-
-        mean_acc, deviation, min_acc, max_acc = nn.evaluate(inp, outp, show_progress=True)
-        f.write(f"{mean_acc} {deviation} {min_acc} {max_acc}\n")
-        f.flush()
-
     if args.pickle_file is not None:
-        with open(args.pickle_file, "wb") as pickle_file:
+        filename = "nn_{0}.p".format(args.pickle_file)
+        filename = os.path.join(args.directory, filename)
+        with open(filename, "wb") as pickle_file:
             pickle.dump(nn, pickle_file)
 
 
