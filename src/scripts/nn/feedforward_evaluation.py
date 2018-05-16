@@ -80,10 +80,11 @@ def main():
     if args.sample:
         data = data.sample(n=args.sample)
 
-    msk = np.random.rand(len(data)) < args.train_validation_split
+    n = len(data)
+    train_size = n * args.train_validation_split
 
-    train_data = data[msk]
-    valid_data = data[~msk]
+    train_data = data.sample(n=int(train_size))
+    valid_data = data.drop(train_data.index)
 
     if args.unpickle_file is not None:
         filename = "nn_{0}.p".format(args.unpickle_file)
