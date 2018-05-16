@@ -4,7 +4,7 @@ This script will produce two plots. First with mean, min and max accuracy. Secon
 """
 import argparse
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 def main():
     parser = argparse.ArgumentParser()
@@ -34,17 +34,25 @@ def main():
 
     iters = range(1, len(optim_list) + 1)
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
-    fig.suptitle("Feedforward NN evaluation error")
+    fig.suptitle("Feedforward NN evaluation error\nOptimal error={}".format(optim_list[0]))
+
+    max_ = np.max(valid_err)
+    min_ = np.min(train_err)
+    diff = max_ - min_
 
     sub1 = plt.subplot(111)
-    axis = plt.gca()
-    axis.set_yscale("log")
-    line_optim, = sub1.plot(iters, optim_list, "g", label="Optimal")
+    # axis = plt.gca()
+    # axis.set_yscale("log")
+
+    # line_optim, = sub1.plot(iters, optim_list, "g", label="Optimal")
     line_min, = sub1.plot(iters, train_err, "b", label="Training error")
     line_max, = sub1.plot(iters, valid_err, "r", label="Validation error")
-    sub1.legend(handles=[line_optim, line_min, line_max])
+    # sub1.legend(handles=[line_optim, line_min, line_max])
+    sub1.legend(handles=[line_min, line_max])
     sub1.set_xlabel("Iterations")
     sub1.set_ylabel("Error")
+
+    plt.ylim(min_ - 0.1 * diff, max_ + 0.1 * diff)
 
     plt.savefig("{0}.png".format(args.plot_name))
 

@@ -193,8 +193,10 @@ def main():
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
             item = sample_map[k].sample(n=1)
-            pop = float(nn.feedforward(np.matrix(item.iloc[:, 1:item.shape[1] - 1]).T))
-            # pop = float(np.mean(np.matrix(item.iloc[:, 1:item.shape[1] - 1])))
+            m = np.matrix(item.iloc[:, 1:item.shape[1] - 1]).T
+            pop = float(nn.feedforward(m))
+            # m = np.exp(m) - 10 ** -5
+            # pop = float(np.mean(m))
             popularities.append((k, pop))
 
         pops_sorted = list(sorted(popularities, key=lambda x: x[1], reverse=True))

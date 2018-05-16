@@ -118,9 +118,9 @@ def main():
         axis = plt.gca()
         axis.set_yscale("log")
 
-        real_dots, = sub2.plot(order, real_pops, "gs", markersize=0.5, label="Real")
         pred_dots_neg, = sub2.plot(order_neg, pred_pops_neg, "rs", markersize=0.5, label="Predicted (negative, abs)")
         pred_dots_pos, = sub2.plot(order_pos, pred_pops_pos, "bs", markersize=0.5, label="Predicted (positive)")
+        real_dots, = sub2.plot(order, real_pops, "gs", markersize=0.5, label="Real")
 
         sub2.legend(handles=[pred_dots_pos, pred_dots_neg, real_dots])
         sub2.set_xlabel("Item")

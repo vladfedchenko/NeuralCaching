@@ -125,9 +125,9 @@ def main():
     tmp = np.exp(tmp) - 10**-5
     # print(tmp[0, :], outp_valid[0, :])
 
-    mean_vals = np.mean(tmp, axis=0)
+    mean_vals = np.mean(tmp, axis=1)
     err = mean_vals - outp_valid
-    optim_err = np.mean(np.multiply(err, err)) / len(err)
+    optim_err = np.mean(np.multiply(err, err))
 
     error_file = os.path.join(args.directory, "error.txt")
     with open(error_file, "a+") as f:
