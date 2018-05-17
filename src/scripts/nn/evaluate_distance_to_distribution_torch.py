@@ -117,8 +117,8 @@ def main():
     else:
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = TorchFeedforwardNN(layers,
-                                hidden_activation=args.sigmoid_hidden_layers,
-                                out_activation=args.sigmoid_output_layers)
+                                hidden_activation=args.hidden_activation,
+                                out_activation=args.out_activation)
 
     sample_map = {}
     for k, v in tqdm(dist_mapping.items(), desc="Preprocessing dataset"):

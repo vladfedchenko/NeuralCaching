@@ -111,8 +111,8 @@ def main():
             else:
                 layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
                 nn = TorchFeedforwardNN(layers,
-                                        hidden_activation=args.sigmoid_hidden_layers,
-                                        out_activation=args.sigmoid_output_layers)
+                                        hidden_activation=args.hidden_activation,
+                                        out_activation=args.out_activation)
 
             inp_train = torch.from_numpy(np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1]))
             outp_train = torch.from_numpy(np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]]))
