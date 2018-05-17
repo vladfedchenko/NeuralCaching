@@ -65,14 +65,14 @@ def main():
                         "--adaptive_learning",
                         help="use adaptive learning rate - decrease rate if error went up",
                         action="store_true")
-    parser.add_argument("-shl",
-                        "--sigmoid_hidden_layers",
-                        help="use sigmoid on hidden layers",
-                        action="store_true")
-    parser.add_argument("-sol",
-                        "--sigmoid_output_layers",
-                        help="use sigmoid on output layer",
-                        action="store_true")
+    parser.add_argument("-ha",
+                        "--hidden_activation",
+                        help="activation to use on hidden layers",
+                        type=str)
+    parser.add_argument("-oa",
+                        "--out_activation",
+                        help="activation to use on out layer",
+                        type=str)
     # parser.add_argument("-aef",
     #                     "--alternative_error_function",
     #                     help="use alternative error function - error for Poisson distribution",
@@ -117,8 +117,8 @@ def main():
     else:
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = TorchFeedforwardNN(layers,
-                                use_sigmoid_hidden=args.sigmoid_hidden_layers,
-                                use_sigmoid_out=args.sigmoid_output_layers)
+                                hidden_activation=args.sigmoid_hidden_layers,
+                                out_activation=args.sigmoid_output_layers)
 
     sample_map = {}
     for k, v in tqdm(dist_mapping.items(), desc="Preprocessing dataset"):

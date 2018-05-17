@@ -18,8 +18,8 @@ class TorchFeedforwardNN(nn.Module):
     # __fc_hidden = None  # input + hidden layers list
     # __fc_output = None  # output layer
 
-    __use_sigmoid_hidden = False
-    __use_sigmoid_out = False
+    __hidden_activation = False
+    __out_activation = False
 
     # endregion
 
@@ -35,18 +35,17 @@ class TorchFeedforwardNN(nn.Module):
 
     def __init__(self,
                  neurons_list: List[int],
-                 use_sigmoid_hidden: bool=False,
-                 use_sigmoid_out: bool=False):
+                 hidden_activation: str=None,
+                 out_activation: str=None):
         """
         FeedforwardNeuralNet a new NeuralNetLayer object.
         :param neurons_list: List of neurons counts in layers of NN.
-        :param use_sigmoid_hidden: Pass True if you want to apply sigmoid at hidden layers.
-        :param use_sigmoid_out: Pass True if you want to apply sigmoid at output layer.
+        :param hidden_activation: Activation to use on hidden layers.
+        :param out_activation: Activation to use on out layer.
         """
         super().__init__()
 
         self.__fc_hidden = []
-        self.__hidden_sigmoids = []
         for i in range(1, len(neurons_list) - 1):
             layer = nn.Linear(neurons_list[i - 1], neurons_list[i]).double()
 
@@ -58,8 +57,8 @@ class TorchFeedforwardNN(nn.Module):
         layer = nn.Linear(neurons_list[-2], neurons_list[-1]).double()
         self.__fc_output = layer
 
-        self.__use_sigmoid_hidden = use_sigmoid_hidden
-        self.__use_sigmoid_out = use_sigmoid_out
+        self.__hidden_activation = hidden_activation
+        self.__out_activation = out_activation
 
     # endregion
 
@@ -83,12 +82,18 @@ class TorchFeedforwardNN(nn.Module):
         out = x
         for layer in self.__fc_hidden:
             out = layer(out)
-            if self.__use_sigmoid_hidden:
+
+            if self.__hidden_activation == "sigmoid":
                 out = functional.sigmoid(out)
+            elif self.__hidden_activation == "relu":
+                out = functional.relu(out)
 
         out = self.__fc_output(out)
-        if self.__use_sigmoid_out:
+
+        if self.__out_activation == "sigmoid":
             out = functional.sigmoid(out)
+        elif self.__out_activation == "relu":
+            out = functional.relu(out)
 
         return out
 
