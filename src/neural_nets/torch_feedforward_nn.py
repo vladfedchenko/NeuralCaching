@@ -86,14 +86,14 @@ class TorchFeedforwardNN(nn.Module):
             if self.__hidden_activation == "sigmoid":
                 out = functional.sigmoid(out)
             elif self.__hidden_activation == "relu":
-                out = functional.relu(out)
+                out = functional.leaky_relu(out)
 
         out = self.__fc_output(out)
 
         if self.__out_activation == "sigmoid":
             out = functional.sigmoid(out)
         elif self.__out_activation == "relu":
-            out = functional.relu(out)
+            out = functional.leaky_relu(out)
 
         return out
 
