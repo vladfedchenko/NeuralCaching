@@ -3,7 +3,8 @@ This script is created to evaluate the error on generated traces using feedforwa
 """
 import pandas as pd
 import numpy as np
-from neural_nets import FeedforwardNeuralNet, sigmoid, sigmoid_deriv, relu, relu_deriv
+from neural_nets import FeedforwardNeuralNet, sigmoid, sigmoid_deriv, relu, relu_deriv, \
+    squared_error, squared_error_der, kl_divergence, kl_divergence_der
 import argparse
 from tqdm import tqdm
 import pickle
@@ -66,6 +67,10 @@ def main():
                         "--out_activation",
                         help="activation to use on out layer",
                         type=str)
+    parser.add_argument("-ef",
+                        "--error_function",
+                        help="error function to use",
+                        type=str)
     parser.add_argument("-ihl",
                         "--input_has_labels",
                         help="pass this is input has class label. Needed for optimal predictor evaluation",
@@ -114,12 +119,24 @@ def main():
             act_out = relu
             act_out_deriv = relu_deriv
 
+        err_func = squared_error
+        err_func_deriv = squared_error_der
+
+        if args.error_function == "mse":
+            err_func = squared_error
+            err_func_deriv = squared_error_der
+        elif args.error_function == "kl":
+            err_func = kl_divergence
+            err_func_deriv = kl_divergence_der
+
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,
                                   internal_activ=act_hid,
                                   internal_activ_deriv=act_hid_deriv,
                                   out_activ=act_out,
-                                  out_activ_deriv=act_out_deriv)
+                                  out_activ_deriv=act_out_deriv,
+                                  error_func=err_func,
+                                  error_deriv=err_func_deriv)
 
     inp_train = np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1])
     outp_train = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])

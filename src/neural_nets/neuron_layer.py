@@ -16,14 +16,14 @@ def sigmoid_deriv(x):
 
 def relu(x):
     if x < 0:
-        return 0.0
+        return 0.01 * x
     else:
         return x
 
 
 def relu_deriv(x):
     if x < 0:
-        return 0.0
+        return 0.01
     else:
         return 1
 

@@ -22,8 +22,12 @@ def squared_error_der(y, calc_y):
     return calc_y - y
 
 
-def poisson_error_der(y, calc_y):
-    return -1.0 + y / calc_y
+def kl_divergence(y, calc_y):
+    return -y * np.log(calc_y / y)
+
+
+def kl_divergence_der(y, calc_y):
+    return -y / calc_y
 
 
 class FeedforwardNeuralNet:
