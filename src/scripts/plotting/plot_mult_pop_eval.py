@@ -1,6 +1,5 @@
 """
-This script is made to plot the data produced by feedforward_evaluation.py script.
-This script will produce two plots. First with mean, min and max accuracy. Second with standard deviation.
+This script is made to plot the data produced by feedforward_eval_multiple_pop.py script.
 """
 import argparse
 import matplotlib.pyplot as plt
@@ -28,29 +27,30 @@ def main():
 
     with open(args.input, "r") as f:
         lines = [x.split() for x in f.readlines()]
-        optim_list = [float(line[0]) for line in lines]
-        train_err = [float(line[1]) for line in lines]
-        valid_err = [float(line[2]) for line in lines]
+        sizes = [int(line[0]) for line in lines]
+        optim_list = [float(line[1]) for line in lines]
+        train_err = [float(line[2]) for line in lines]
+        valid_err = [float(line[3]) for line in lines]
 
-    iters = range(1, len(optim_list) + 1)
+    # iters = range(1, len(optim_list) + 1)
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
-    fig.suptitle("Feedforward NN evaluation error\nOptimal error={}".format(optim_list[0]))
+    fig.suptitle("Feedforward NN evaluation error")
 
-    max_ = np.max(valid_err)
-    min_ = np.min(train_err)
-    diff = max_ - min_
+    # max_ = np.max(valid_err)
+    # min_ = np.min(train_err)
+    # diff = max_ - min_
 
     sub1 = plt.subplot(111)
-    # axis = plt.gca()
-    # axis.set_yscale("log")
-    # line_optim, = sub1.plot(iters, optim_list, "g", label="Optimal")
-    line_min, = sub1.plot(iters, train_err, "b", label="Training error")
-    line_max, = sub1.plot(iters, valid_err, "r", label="Validation error")
-    # sub1.legend(handles=[line_optim, line_min, line_max])
-    sub1.legend(handles=[line_min, line_max])
-    sub1.set_xlabel("Iterations")
-    sub1.set_ylabel("Error")
-    sub1.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+    axis = plt.gca()
+    axis.set_yscale("log")
+    line_optim, = sub1.plot(sizes, optim_list, "g", label="Optimal")
+    line_min, = sub1.plot(sizes, train_err, "b", label="Training error")
+    line_max, = sub1.plot(sizes, valid_err, "r", label="Validation error")
+    sub1.legend(handles=[line_optim, line_min, line_max])
+    # sub1.legend(handles=[line_min, line_max])
+    sub1.set_xlabel("Population size")
+    sub1.set_ylabel("Error (log)")
+    # sub1.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
 
     # plt.ylim(min_ - 0.1 * diff, max_ + 0.1 * diff)
 
