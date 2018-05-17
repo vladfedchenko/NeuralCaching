@@ -14,6 +14,20 @@ def sigmoid_deriv(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
 
+def relu(x):
+    if x < 0:
+        return 0.0
+    else:
+        return x
+
+
+def relu_deriv(x):
+    if x < 0:
+        return 0.0
+    else:
+        return 1
+
+
 def lin(x):
     return x
 
@@ -60,7 +74,7 @@ class NeuralNetLayer:
         :param prev_layer_neurons: Number of neurons in previous layer.
         :param activation_func: Neuron activation function. Pass None if no activation required.
         """
-        self.__coef_matrix = np.random.rand(prev_layer_neurons + 1, neurons, dtype=np.float256) - 0.5
+        self.__coef_matrix = np.random.rand(prev_layer_neurons + 1, neurons) - 0.5
 
         if activation_func is not None and activation_deriv is not None:
             self.__activation = np.vectorize(activation_func)

@@ -3,7 +3,7 @@ This script is created to evaluate the error on generated traces using feedforwa
 """
 import pandas as pd
 import numpy as np
-from neural_nets.feedforward_nn import FeedforwardNeuralNet, sigmoid, sigmoid_deriv
+from neural_nets import FeedforwardNeuralNet, sigmoid, sigmoid_deriv, relu, relu_deriv
 import argparse
 from tqdm import tqdm
 import pickle
@@ -58,14 +58,14 @@ def main():
                         type=int,
                         help="middle layers neuron count",
                         default=2)
-    parser.add_argument("-shl",
-                        "--sigmoid_hidden_layers",
-                        help="use sigmoid on hidden layers",
-                        action="store_true")
-    parser.add_argument("-sol",
-                        "--sigmoid_output_layers",
-                        help="use sigmoid on output layer",
-                        action="store_true")
+    parser.add_argument("-ha",
+                        "--hidden_activation",
+                        help="activation to use on hidden layers",
+                        type=str)
+    parser.add_argument("-oa",
+                        "--out_activation",
+                        help="activation to use on out layer",
+                        type=str)
     parser.add_argument("-ihl",
                         "--input_has_labels",
                         help="pass this is input has class label. Needed for optimal predictor evaluation",
@@ -98,13 +98,21 @@ def main():
         act_out = None
         act_out_deriv = None
 
-        if args.sigmoid_hidden_layers:
+        if args.hidden_activation == "sigmoid":
             act_hid = sigmoid
             act_hid_deriv = sigmoid_deriv
 
-        if args.sigmoid_output_layers:
+        if args.out_activation == "sigmoid":
             act_out = sigmoid
             act_out_deriv = sigmoid_deriv
+
+        if args.hidden_activation == "relu":
+            act_hid = relu
+            act_hid_deriv = relu_deriv
+
+        if args.out_activation == "relu":
+            act_out = relu
+            act_out_deriv = relu_deriv
 
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,

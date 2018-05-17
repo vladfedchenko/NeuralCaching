@@ -5,6 +5,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("input",
