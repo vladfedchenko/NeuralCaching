@@ -51,6 +51,14 @@ def main():
                         "--log_output",
                         help="transform the output data to log(y + 1)",
                         action="store_true")
+    parser.add_argument("-ni",
+                        "--neg_input",
+                        help="transform the input data to -x. Applied after log if log is passed",
+                        action="store_true")
+    parser.add_argument("-no",
+                        "--neg_output",
+                        help="transform the output data to -x. Applied after log if log is passed",
+                        action="store_true")
     parser.add_argument("-sid",
                         "--save_id",
                         help="save id of the objects",
@@ -104,6 +112,11 @@ def main():
                         data_inp = np.log(data_inp + 10**-5)
                     if args.log_output:
                         data_outp = np.log(data_outp + 10**-5)
+
+                    if args.neg_input:
+                        data_inp = -data_inp
+                    if args.neg_output:
+                        data_outp = -data_outp
 
                     data_matrix = np.concatenate((data_inp, data_outp), axis=1)
 

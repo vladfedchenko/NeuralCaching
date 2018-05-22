@@ -203,6 +203,7 @@ def main():
             item = sample_map[k].sample(n=1)
             m = np.matrix(item.iloc[:, 1:item.shape[1] - 1]).T
             pop = float(nn.feedforward(m))
+            pop = np.exp(pop) - 10 ** -5
             # m = np.exp(m) - 10 ** -5
             # pop = float(np.mean(m))
             popularities.append((k, pop))
