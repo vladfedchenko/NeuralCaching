@@ -16,12 +16,26 @@ def sigmoid_deriv(x):
 
 def relu(x):
     if x < 0:
-        return 0.01 * x
+        return 0
     else:
         return x
 
 
 def relu_deriv(x):
+    if x < 0:
+        return 0
+    else:
+        return 1
+
+
+def l_relu(x):
+    if x < 0:
+        return 0.01 * x
+    else:
+        return x
+
+
+def l_relu_deriv(x):
     if x < 0:
         return 0.01
     else:

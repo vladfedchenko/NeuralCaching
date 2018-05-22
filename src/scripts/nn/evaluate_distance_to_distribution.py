@@ -72,6 +72,10 @@ def main():
                         "--out_activation",
                         help="activation to use on out layer",
                         type=str)
+    parser.add_argument("-ef",
+                        "--error_function",
+                        help="error function to use",
+                        type=str)
     # parser.add_argument("-aef",
     #                     "--alternative_error_function",
     #                     help="use alternative error function - error for Poisson distribution",
@@ -114,33 +118,11 @@ def main():
         with open(filename, "rb") as unpickle_file:
             nn = pickle.load(unpickle_file)
     else:
-        act_hid = None
-        act_hid_deriv = None
-        act_out = None
-        act_out_deriv = None
-
-        if args.hidden_activation == "sigmoid":
-            act_hid = sigmoid
-            act_hid_deriv = sigmoid_deriv
-
-        if args.out_activation == "sigmoid":
-            act_out = sigmoid
-            act_out_deriv = sigmoid_deriv
-
-        if args.hidden_activation == "relu":
-            act_hid = relu
-            act_hid_deriv = relu_deriv
-
-        if args.out_activation == "relu":
-            act_out = relu
-            act_out_deriv = relu_deriv
-
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,
-                                  internal_activ=act_hid,
-                                  internal_activ_deriv=act_hid_deriv,
-                                  out_activ=act_out,
-                                  out_activ_deriv=act_out_deriv)
+                                  hidden_activation=args.hidden_activation,
+                                  out_activation=args.out_activation,
+                                  error_func=args.error_function)
 
     sample_map = {}
     for k, v in tqdm(dist_mapping.items(), desc="Preprocessing dataset"):

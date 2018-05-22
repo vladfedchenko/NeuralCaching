@@ -1,7 +1,7 @@
 """
 This module contains the implementation of simple feedforward neural network.
 """
-from neural_nets.neuron_layer import NeuralNetLayer, sigmoid, sigmoid_deriv
+from neural_nets.neuron_layer import *
 from typing import Callable, TypeVar
 from typing import List
 import numpy as np
@@ -54,19 +54,15 @@ class FeedforwardNeuralNet:
 
     def __init__(self,
                  neurons_list: list,
-                 internal_activ: ActivationFuncType=sigmoid,
-                 internal_activ_deriv: ActivationFuncType=sigmoid_deriv,
-                 out_activ: ActivationFuncType=None,
-                 out_activ_deriv: ActivationFuncType=None,
-                 error_func: Callable[[float, float], float]=squared_error,
-                 error_deriv: Callable[[float, float], float]=squared_error_der):
+                 hidden_activation: str = None,
+                 out_activation: str = None,
+                 error_func: str = None):
         """
         FeedforwardNeuralNet a new NeuralNetLayer object.
         :param neurons_list: List of neurons counts in layers of NN.
-        :param internal_activ: Activation function for internal layers.
-        :param internal_activ_deriv: Derivative of activation function for internal layers.
-        :param out_activ: Activation function for output layer.
-        :param out_activ_deriv: Derivative of activation function for output layer.
+        :param hidden_activation: Activation to use on hidden layers.
+        :param out_activation: Activation to use on out layer.
+        :param error_func: Error function to use.
         :param error_deriv: Derivative of the error function.
         """
         self.__layers = []
@@ -74,13 +70,49 @@ class FeedforwardNeuralNet:
             prev_layer = neurons_list[i - 1]
             cur_layer = neurons_list[i]
 
+            out_activ = lin
+            out_activ_deriv = lin_deriv
+
+            if out_activation == "sigmoid":
+                out_activ = sigmoid
+                out_activ_deriv = sigmoid_deriv
+            elif out_activation == "relu":
+                out_activ = relu
+                out_activ_deriv = relu_deriv
+            elif out_activation == "l_relu":
+                out_activ = l_relu
+                out_activ_deriv = l_relu_deriv
+
+            hidden_activ = lin
+            hidden_activ_deriv = lin_deriv
+
+            if hidden_activation == "sigmoid":
+                hidden_activ = sigmoid
+                hidden_activ_deriv = sigmoid_deriv
+            elif hidden_activation == "relu":
+                hidden_activ = relu
+                hidden_activ_deriv = relu_deriv
+            elif hidden_activation == "l_relu":
+                hidden_activ = l_relu
+                hidden_activ_deriv = l_relu_deriv
+
             if i == len(neurons_list) - 1:
                 layer = NeuralNetLayer(cur_layer, prev_layer, out_activ, out_activ_deriv)
             else:
-                layer = NeuralNetLayer(cur_layer, prev_layer, internal_activ, internal_activ_deriv)
+                layer = NeuralNetLayer(cur_layer, prev_layer, hidden_activ, hidden_activ_deriv)
             self.__layers.append(layer)
 
-        self.__error_func = error_func
+        error_func_f = squared_error
+        error_deriv = squared_error_der
+
+        if error_func == "mse":
+            error_func_f = squared_error
+            error_deriv = squared_error_der
+        elif error_func == "kl":
+            error_func_f = kl_divergence
+            error_deriv = kl_divergence_der
+
+        self.__error_func = error_func_f
         self.__error_deriv = error_deriv
 
     # endregion

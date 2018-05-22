@@ -98,45 +98,11 @@ def main():
             nn = pickle.load(unpickle_file)
 
     else:
-        act_hid = None
-        act_hid_deriv = None
-        act_out = None
-        act_out_deriv = None
-
-        if args.hidden_activation == "sigmoid":
-            act_hid = sigmoid
-            act_hid_deriv = sigmoid_deriv
-
-        if args.out_activation == "sigmoid":
-            act_out = sigmoid
-            act_out_deriv = sigmoid_deriv
-
-        if args.hidden_activation == "relu":
-            act_hid = relu
-            act_hid_deriv = relu_deriv
-
-        if args.out_activation == "relu":
-            act_out = relu
-            act_out_deriv = relu_deriv
-
-        err_func = squared_error
-        err_func_deriv = squared_error_der
-
-        if args.error_function == "mse":
-            err_func = squared_error
-            err_func_deriv = squared_error_der
-        elif args.error_function == "kl":
-            err_func = kl_divergence
-            err_func_deriv = kl_divergence_der
-
         layers = [data.shape[1] - 2] + ([args.middle_layer_neurons] * args.middle_layers) + [1]
         nn = FeedforwardNeuralNet(layers,
-                                  internal_activ=act_hid,
-                                  internal_activ_deriv=act_hid_deriv,
-                                  out_activ=act_out,
-                                  out_activ_deriv=act_out_deriv,
-                                  error_func=err_func,
-                                  error_deriv=err_func_deriv)
+                                  hidden_activation=args.hidden_activation,
+                                  out_activation=args.out_activation,
+                                  error_func=args.error_function)
 
     inp_train = np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1])
     outp_train = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
