@@ -97,6 +97,8 @@ def main():
         nn = TorchFeedforwardNN(layers,
                                 hidden_activation=args.hidden_activation,
                                 out_activation=args.out_activation)
+        if torch.cuda.is_available():
+            nn.cuda()
 
     inp_train = torch.from_numpy(np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1]))
     outp_train = torch.from_numpy(np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]]))
@@ -118,6 +120,12 @@ def main():
 
     inp_valid = torch.from_numpy(inp_valid)
     outp_valid = torch.from_numpy(outp_valid)
+
+    if torch.cuda.is_available():
+        inp_train.cuda()
+        outp_train.cuda()
+        inp_valid.cuda()
+        outp_valid.cuda()
 
     error_file = os.path.join(args.directory, "error.txt")
     with open(error_file, "a+") as f:
