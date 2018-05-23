@@ -87,6 +87,10 @@ def main():
     train_data = data.sample(n=int(train_size))
     valid_data = data.drop(train_data.index)
 
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # device = "cpu"
+    print("Running on: {0}".format(device))
+
     if args.unpickle_file is not None:
         filename = "distance_nn_{0}.p".format(args.unpickle_file)
         filename = os.path.join(args.directory, filename)
@@ -98,7 +102,7 @@ def main():
                                 hidden_activation=args.hidden_activation,
                                 out_activation=args.out_activation)
         if torch.cuda.is_available():
-            nn.cuda()
+            nn.to(device)
 
     inp_train = torch.from_numpy(np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1]))
     outp_train = torch.from_numpy(np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]]))
@@ -122,18 +126,18 @@ def main():
     outp_valid = torch.from_numpy(outp_valid)
 
     if torch.cuda.is_available():
-        inp_train.cuda()
-        outp_train.cuda()
-        inp_valid.cuda()
-        outp_valid.cuda()
+        inp_train = inp_train.to(device)
+        outp_train = outp_train.to(device)
+        inp_valid = inp_valid.to(device)
+        outp_valid = outp_valid.to(device)
 
     error_file = os.path.join(args.directory, "error.txt")
     with open(error_file, "a+") as f:
         for _ in tqdm(range(args.iterations), desc="Running iterations"):
-            nn.backpropagation_learn(inp_train, outp_train, args.learning_rate, show_progress=True, stochastic=True)
+            nn.backpropagation_learn(inp_train, outp_train, args.learning_rate, show_progress=True, stochastic=False)
 
-            train_err = nn.evaluate(inp_train, outp_train, show_progress=True)[0]
-            valid_err = nn.evaluate(inp_valid, outp_valid, show_progress=True)[0]
+            train_err = nn.evaluate(inp_train, outp_train)
+            valid_err = nn.evaluate(inp_valid, outp_valid)
 
             f.write("{} {} {}\n".format(optim_err, train_err, valid_err))
             f.flush()

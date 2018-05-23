@@ -144,49 +144,22 @@ class TorchFeedforwardNN(nn.Module):
 
     def evaluate(self,
                  inputs: torch.Tensor,
-                 outputs: torch.Tensor,
-                 show_progress: bool = False) -> (float, float, float):
+                 outputs: torch.Tensor) -> float:
         """
         Evaluate the NN by calculating mean error using provided error function.
         :param inputs: Matrix of inputs.
         :param outputs: Matrix of outputs.
-        :param show_progress: Show progress bar.
-        :return: Mean, standard deviation, min, max errors using provided on creation error function.
+        :return: Error using provided on creation error function.
         """
         n = inputs.shape[0]
-        full_err = 0.0
-        min_error = sys.float_info.max
-        max_error = 0.0
-        if show_progress:
-            iterable = tqdm(range(n), desc="Evaluated samples", unit="samples")
-        else:
-            iterable = range(n)
+        calc_outp = self(inputs).detach()
 
-        errors = []
-        for sample in iterable:
-            inp = inputs[sample, :]
-            outp = outputs[sample, :].detach()
+        self.zero_grad()
+        loss = self.__criterion(outputs, calc_outp)
+        if loss.device.type.startswith("cuda"):
+            loss = loss.cpu()
+        loss_np = loss.numpy()
 
-            calc_outp = self(inp).detach()
-
-            self.zero_grad()
-            loss = self.__criterion(outp, calc_outp)
-            loss_np = loss.numpy()
-            err = np.sum(loss_np)
-
-            if err < min_error:
-                min_error = err
-
-            if err > max_error:
-                max_error = err
-
-            errors.append(err)
-
-            full_err += err
-
-        mean = full_err / n
-        deviation = math.sqrt(np.sum([(x - mean) ** 2 for x in errors]) / n)
-
-        return mean, deviation, min_error, max_error
+        return float(loss_np)
 
     # endregion
