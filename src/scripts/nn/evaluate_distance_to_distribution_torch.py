@@ -180,7 +180,7 @@ def main():
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
             item = sample_map[k].sample(n=1)
             pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
-            pop = np.exp(pop) - 10 ** -5
+            pop = np.exp(-pop) - 10 ** -5
             # pop = float(np.mean(np.matrix(item.iloc[:, 1:item.shape[1] - 1])))
             popularities.append((k, pop))
 

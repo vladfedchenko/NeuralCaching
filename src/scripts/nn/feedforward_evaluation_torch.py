@@ -108,10 +108,11 @@ def main():
     if args.input_has_labels:
         tmp = tmp[:, 1:]
 
-    # tmp = np.exp(tmp) - 10**-5
+    tmp = np.exp(tmp) - 10 ** -5  # transform from log
+    mean_vals = np.mean(tmp, axis=1)
+    mean_vals = np.log(mean_vals + 10 ** -5)  # transform to log
     # print(tmp[0, :], outp_valid[0, :])
 
-    mean_vals = np.mean(tmp, axis=1)
     err = mean_vals - outp_valid
     optim_err = np.mean(np.multiply(err, err))
 
