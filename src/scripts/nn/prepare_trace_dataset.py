@@ -86,7 +86,7 @@ def main():
         with open(args.output, 'w') as f:
             while time_processed < max_time:
                 # input_df = input_df[input_df.from_start >= time_processed - args.window_size]
-                window_df = input_df[(input_df.from_start >= (time_processed - args.window_size)) and
+                window_df = input_df[(input_df.from_start >= (time_processed - args.window_size)) &
                                      (input_df.from_start < time_processed)]
                 items_count = float(len(window_df))
                 pop_col = []
