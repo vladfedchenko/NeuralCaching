@@ -2,13 +2,14 @@
 This module contains the implementation of cache policy using feedforward NN.
 """
 from caching.abstract_cache import AbstractCache
-from neural_nets import FeedforwardNeuralNet
+from neural_nets import TorchFeedforwardNN
 from helpers.collections import CountMinSketch, PriorityDict
 import random
 import numpy as np
+import torch
 
 
-class FeedforwardNNCache(AbstractCache):
+class FeedforwardNNCacheTorch(AbstractCache):
 
     # region Private variables
 
@@ -36,7 +37,7 @@ class FeedforwardNNCache(AbstractCache):
 
     def __init__(self,
                  size: int,
-                 trained_net: FeedforwardNeuralNet,
+                 trained_net: TorchFeedforwardNN,
                  sketches_num: int,
                  sketches_additive_factor: float,
                  sketches_probability: float,
@@ -83,13 +84,17 @@ class FeedforwardNNCache(AbstractCache):
         """
         prediction_row = []
         for sketch in self.__count_min_sketches:
-            prediction_row.append(sketch.get_request_fraction(id_))
+            frac = sketch.get_request_fraction(id_)
+            frac = -np.log(frac + 10**-5)
+            prediction_row.append(frac)
 
         window_time = (time - self.__time_window * self.__processed_windows) / self.__time_window
         prediction_row.append(window_time)
 
-        matr = np.matrix([prediction_row]).T
-        return float(self.__trained_net.feedforward(matr))
+        matr = torch.from_numpy(np.matrix([prediction_row]))
+        pop_log = float(self.__trained_net(matr))
+        pop = np.exp(-pop_log) - 10**-5
+        return pop
 
     def __update_time(self, time: float):
         """

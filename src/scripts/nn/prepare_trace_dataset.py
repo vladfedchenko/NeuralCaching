@@ -69,7 +69,8 @@ def main():
                         action="store_true")
     args = parser.parse_args()
 
-    input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
+    # input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
+    input_df = pd.read_csv(args.input, header=None, names=["from_start", "size", "id"])
 
     ids = list(sorted(input_df.id.unique()))
     max_time = input_df.from_start.max()
@@ -84,8 +85,9 @@ def main():
     with tqdm(total=max_time - time_processed, desc="Time processed", unit="unit(s)") as pbar:
         with open(args.output, 'w') as f:
             while time_processed < max_time:
-                input_df = input_df[input_df.from_start >= time_processed - args.window_size]
-                window_df = input_df[input_df.from_start < time_processed]
+                # input_df = input_df[input_df.from_start >= time_processed - args.window_size]
+                window_df = input_df[(input_df.from_start >= (time_processed - args.window_size)) and
+                                     (input_df.from_start < time_processed)]
                 items_count = float(len(window_df))
                 pop_col = []
                 for id_ in tqdm(ids, desc="Calculating item popularity"):

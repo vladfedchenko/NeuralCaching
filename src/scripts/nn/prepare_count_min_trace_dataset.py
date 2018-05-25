@@ -7,6 +7,7 @@ import argparse
 import pandas as pd
 from tqdm import tqdm
 from helpers.collections import CountMinSketch
+import numpy as np
 
 
 dataframe_cols = None
@@ -45,6 +46,22 @@ def main():
     parser.add_argument("-st",
                         "--save_time",
                         help="save fraction of time window from the start of the window when the object arrives",
+                        action="store_true")
+    parser.add_argument("-li",
+                        "--log_input",
+                        help="transform the input data to log(x + 10^-5)",
+                        action="store_true")
+    parser.add_argument("-lo",
+                        "--log_output",
+                        help="transform the output data to log(y + 10^-5)",
+                        action="store_true")
+    parser.add_argument("-ni",
+                        "--neg_input",
+                        help="transform the input data to -x. Applied after log if log is passed",
+                        action="store_true")
+    parser.add_argument("-no",
+                        "--neg_output",
+                        help="transform the output data to -x. Applied after log if log is passed",
                         action="store_true")
     parser.add_argument("-o",
                         "--output",
@@ -87,15 +104,31 @@ def main():
                         if args.save_id:
                             to_write.append(id_)
 
-                        for old_cm in cm_sketches[:-2]:
-                            to_write.append(old_cm.get_request_fraction(id_))
+                        for old_cm in cm_sketches[:-2] + [prev_cm]:
+                            frac = old_cm.get_request_fraction(id_)
 
-                        to_write.append(prev_cm.get_request_fraction(id_))
+                            if args.log_input:
+                                frac = np.log(frac + 10**-5)
+
+                            if args.neg_input:
+                                frac = -frac
+
+                            to_write.append(frac)
+
+                        # to_write.append(prev_cm.get_request_fraction(id_))
 
                         if args.save_time:
                             to_write.append((row.from_start - prev_win_start) / float(args.window_size))
 
-                        to_write.append(cm_sketches[-1].get_request_fraction(id_))
+                        frac = cm_sketches[-1].get_request_fraction(id_)
+
+                        if args.log_output:
+                            frac = np.log(frac + 10**-5)
+
+                        if args.neg_output:
+                            frac = -frac
+
+                        to_write.append(frac)
 
                         write_row(out_file, to_write)
                     out_file.flush()

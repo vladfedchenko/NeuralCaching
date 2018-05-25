@@ -352,6 +352,19 @@ class CountMinSketch:
         hashes = math.log(1.0/(1.0 - probability), math.e)
         return CountMinSketch(int(cells), int(hashes))
 
+    @staticmethod
+    def construct_by_space(max_cells: int, probability: float=0.99):
+        """
+        Construct a count-min sketch by space constraints.
+        :param max_cells: Maximum number of cells.
+        :param probability: Probability of the difference to be under overcount.
+        :return: An instance of CountMinSketch
+        """
+        hashes = int(math.log(1.0/(1.0 - probability), math.e))
+        cells = int(max_cells / hashes)
+        assert(max_cells * hashes <= max_cells)
+        return CountMinSketch(cells, hashes)
+
     # endregion
 
     # region Private methods

@@ -102,6 +102,8 @@ def main():
         for k, v in dist_mapping.items():
             dist_mapping[k] = v / 2.0
 
+        print(np.sum(list(dist_mapping.values())))
+
     else:
         raise AttributeError("Unknown case passed")
 

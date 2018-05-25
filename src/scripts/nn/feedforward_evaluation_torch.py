@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from neural_nets import TorchFeedforwardNN
 import torch
+import torch.utils.data
 import argparse
 from tqdm import tqdm
 import pickle
@@ -34,6 +35,11 @@ def main():
                         type=int,
                         help="number of samples to use from dataset. If not passed - whole dataset is used",
                         default=None)
+    parser.add_argument("-mb",
+                        "--mini_batch",
+                        type=int,
+                        help="minibatch size, 1000 is default",
+                        default=1000)
     parser.add_argument("-tvs",
                         "--train_validation_split",
                         type=float,
@@ -110,17 +116,18 @@ def main():
     inp_valid = np.matrix(valid_data.iloc[:, 1:valid_data.shape[1] - 1])
     outp_valid = np.matrix(valid_data.iloc[:, valid_data.shape[1] - 1:valid_data.shape[1]])
 
-    tmp = inp_valid
-    if args.input_has_labels:
-        tmp = tmp[:, 1:]
-
-    tmp = np.exp(tmp) - 10 ** -5  # transform from log
-    mean_vals = np.mean(tmp, axis=1)
-    mean_vals = np.log(mean_vals + 10 ** -5)  # transform to log
-    # print(tmp[0, :], outp_valid[0, :])
-
-    err = mean_vals - outp_valid
-    optim_err = np.mean(np.multiply(err, err))
+    # tmp = inp_valid
+    # if args.input_has_labels:
+    #     tmp = tmp[:, 1:]
+    #
+    # tmp = np.exp(tmp) - 10 ** -5  # transform from log
+    # mean_vals = np.mean(tmp, axis=1)
+    # mean_vals = np.log(mean_vals + 10 ** -5)  # transform to log
+    # # print(tmp[0, :], outp_valid[0, :])
+    #
+    # err = mean_vals - outp_valid
+    # optim_err = np.mean(np.multiply(err, err))
+    optim_err = 0.0
 
     inp_valid = torch.from_numpy(inp_valid)
     outp_valid = torch.from_numpy(outp_valid)
@@ -134,7 +141,11 @@ def main():
     error_file = os.path.join(args.directory, "error.txt")
     with open(error_file, "a+") as f:
         for _ in tqdm(range(args.iterations), desc="Running iterations"):
-            nn.backpropagation_learn(inp_train, outp_train, args.learning_rate, show_progress=True, stochastic=False)
+            train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(inp_train, outp_train),
+                                                       batch_size=args.mini_batch,
+                                                       shuffle=True)
+            for inp, target in tqdm(train_loader, desc="Running minibatches"):
+                nn.backpropagation_learn(inp, target, args.learning_rate, show_progress=True, stochastic=False)
 
             train_err = nn.evaluate(inp_train, outp_train)
             valid_err = nn.evaluate(inp_valid, outp_valid)
