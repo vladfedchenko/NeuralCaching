@@ -73,6 +73,10 @@ def main():
                         "--out_activation",
                         help="activation to use on out layer",
                         type=str)
+    parser.add_argument("-s",
+                        "--seed",
+                        help="seed for item sampling",
+                        type=int)
     # parser.add_argument("-aef",
     #                     "--alternative_error_function",
     #                     help="use alternative error function - error for Poisson distribution",
@@ -146,7 +150,7 @@ def main():
             if args.train_sample_size is None:
                 train_data = data
             else:
-                train_data = data.sample(n=args.train_sample_size)
+                train_data = data.sample(n=args.train_sample_size, random_state=args.seed)
             inp = torch.from_numpy(np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1]))
             outp = torch.from_numpy(np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]]))
             nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
@@ -154,11 +158,11 @@ def main():
             dist = 0.0
             err = 0.0
             for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-                item = sample_map[k].sample(n=1)
+                item = sample_map[k].sample(n=1, random_state=args.seed)
                 inp = torch.from_numpy(np.matrix(item.iloc[:, 1:item.shape[1] - 1]))
                 outp = torch.from_numpy(np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))
 
-                err += nn.evaluate(inp, outp, show_progress=False)[0]
+                err += nn.evaluate(inp, outp)
 
                 pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
 
@@ -178,10 +182,15 @@ def main():
     with open(cache_file, "w") as f:
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-            item = sample_map[k].sample(n=1)
+            item = sample_map[k].sample(n=1, random_state=args.seed)
             pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
             pop = np.exp(-pop) - 10 ** -5
-            # pop = float(np.mean(np.matrix(item.iloc[:, 1:item.shape[1] - 1])))
+
+            # tmp = np.exp(-np.matrix(item.iloc[:, 2:item.shape[1] - 1])) - 10 ** -5  # transform from log
+            # pop = float(np.mean(tmp, axis=1))
+
+            # tmp = np.exp(-np.matrix(item.iloc[:, -1:])) - 10 ** -5  # transform from log
+            # pop = float(tmp)
             popularities.append((k, pop))
 
         pops_sorted = list(sorted(popularities, key=lambda x: x[1], reverse=True))

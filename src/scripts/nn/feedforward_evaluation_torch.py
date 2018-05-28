@@ -98,7 +98,7 @@ def main():
     print("Running on: {0}".format(device))
 
     if args.unpickle_file is not None:
-        filename = "distance_nn_{0}.p".format(args.unpickle_file)
+        filename = "nn_{0}.p".format(args.unpickle_file)
         filename = os.path.join(args.directory, filename)
         with open(filename, "rb") as unpickle_file:
             nn = pickle.load(unpickle_file)
