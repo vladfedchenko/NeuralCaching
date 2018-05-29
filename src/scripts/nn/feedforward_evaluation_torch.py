@@ -12,6 +12,20 @@ import pickle
 import os
 
 
+def calc_aver_error(inp, outp, has_labels):
+    tmp = inp
+    if has_labels:
+        tmp = tmp[:, 1:]
+
+    tmp = np.exp(tmp) - 10 ** -5  # transform from log
+    mean_vals = np.mean(tmp, axis=1)
+    mean_vals = np.log(mean_vals + 10 ** -5)  # transform to log
+    # print(tmp[0, :], outp_valid[0, :])
+
+    err = mean_vals - outp
+    optim_err = np.mean(np.multiply(err, err))
+    return optim_err
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("input",
@@ -80,10 +94,20 @@ def main():
     parser.add_argument("--seed",
                         help="seed for item sampling",
                         type=int)
+    parser.add_argument("-fc",
+                        "--force_cpu",
+                        help="force cpu execution for PyTorch",
+                        action="store_true")
     args = parser.parse_args()
 
     if not os.path.exists(args.directory):
         os.makedirs(args.directory)
+
+    if args.seed:
+        torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(args.seed)
 
     data = pd.read_csv(args.input, header=None)
 
@@ -97,14 +121,9 @@ def main():
     valid_data = data.drop(train_data.index)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # device = "cpu"
+    if args.force_cpu:
+        device = "cpu"
     print("Running on: {0}".format(device))
-
-    if args.seed:
-        torch.manual_seed(args.seed)
-        np.random.seed(args.seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(args.seed)
 
     if args.unpickle_file is not None:
         filename = "nn_{0}.p".format(args.unpickle_file)
@@ -119,25 +138,17 @@ def main():
         if torch.cuda.is_available():
             nn.to(device)
 
-    inp_train = torch.from_numpy(np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1]))
-    outp_train = torch.from_numpy(np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]]))
+    inp_train = np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1])
+    outp_train = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
 
     inp_valid = np.matrix(valid_data.iloc[:, 1:valid_data.shape[1] - 1])
     outp_valid = np.matrix(valid_data.iloc[:, valid_data.shape[1] - 1:valid_data.shape[1]])
 
-    # tmp = inp_valid
-    # if args.input_has_labels:
-    #     tmp = tmp[:, 1:]
-    #
-    # tmp = np.exp(tmp) - 10 ** -5  # transform from log
-    # mean_vals = np.mean(tmp, axis=1)
-    # mean_vals = np.log(mean_vals + 10 ** -5)  # transform to log
-    # # print(tmp[0, :], outp_valid[0, :])
-    #
-    # err = mean_vals - outp_valid
-    # optim_err = np.mean(np.multiply(err, err))
-    optim_err = 0.0
+    optim_err = calc_aver_error(inp_valid, outp_valid, args.input_has_labels)
+    optim_err_train = calc_aver_error(inp_train, outp_train, args.input_has_labels)
 
+    inp_train = torch.from_numpy(inp_train)
+    outp_train = torch.from_numpy(outp_train)
     inp_valid = torch.from_numpy(inp_valid)
     outp_valid = torch.from_numpy(outp_valid)
 
@@ -148,7 +159,8 @@ def main():
         outp_valid = outp_valid.to(device)
 
     error_file = os.path.join(args.directory, "error.txt")
-    with open(error_file, "a+") as f:
+    with open(error_file, "w") as f:
+        f.write("{} {}\n".format(optim_err_train, optim_err))
         for _ in tqdm(range(args.iterations), desc="Running iterations"):
             train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(inp_train, outp_train),
                                                        batch_size=args.mini_batch,
@@ -159,7 +171,7 @@ def main():
             train_err = nn.evaluate(inp_train, outp_train)
             valid_err = nn.evaluate(inp_valid, outp_valid)
 
-            f.write("{} {} {}\n".format(optim_err, train_err, valid_err))
+            f.write("{} {}\n".format(train_err, valid_err))
             f.flush()
 
     if args.pickle_file is not None:

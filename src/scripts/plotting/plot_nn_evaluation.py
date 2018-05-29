@@ -32,13 +32,17 @@ def main():
 
     with open(args.input, "r") as f:
         lines = [x.split() for x in f.readlines()]
-        optim_list = [float(line[0]) for line in lines]
-        train_err = [float(line[1]) for line in lines]
-        valid_err = [float(line[2]) for line in lines]
+        train_err = [float(line[0]) for line in lines]
+        valid_err = [float(line[1]) for line in lines]
 
-    iters = range(1, len(optim_list) + 1)
+    iters = range(1, len(valid_err) + 1)
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
-    fig.suptitle("Feedforward NN evaluation error\nAverage predictor error={}".format(optim_list[0]))
+    fig.suptitle(("Feedforward NN evaluation error\n"
+                  "Training set average predictor error={}\n"
+                  "Validation set average predictor error={}").format(train_err[0], valid_err[0]))
+
+    train_err = train_err[1:]
+    valid_err = valid_err[1:]
 
     # max_ = np.max(valid_err)
     # min_ = np.min(train_err)
