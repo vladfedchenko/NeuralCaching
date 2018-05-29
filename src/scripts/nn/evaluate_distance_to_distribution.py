@@ -5,7 +5,7 @@ It is not a multi-use script, it is just a base for multiple cases of distributi
 """
 import pandas as pd
 import numpy as np
-from neural_nets import FeedforwardNeuralNet, sigmoid, sigmoid_deriv, relu, relu_deriv
+from neural_nets import FeedforwardNeuralNet
 import argparse
 from tqdm import tqdm
 import pickle
@@ -76,6 +76,10 @@ def main():
                         "--error_function",
                         help="error function to use",
                         type=str)
+    parser.add_argument("-s",
+                        "--seed",
+                        help="seed for item sampling",
+                        type=int)
     # parser.add_argument("-aef",
     #                     "--alternative_error_function",
     #                     help="use alternative error function - error for Poisson distribution",
@@ -101,8 +105,6 @@ def main():
 
         for k, v in dist_mapping.items():
             dist_mapping[k] = v / 2.0
-
-        print(np.sum(list(dist_mapping.values())))
 
     else:
         raise AttributeError("Unknown case passed")
@@ -152,7 +154,7 @@ def main():
             if args.train_sample_size is None:
                 train_data = data
             else:
-                train_data = data.sample(n=args.train_sample_size)
+                train_data = data.sample(n=args.train_sample_size, random_state=args.seed)
             inp = np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1])
             outp = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
             nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
@@ -160,7 +162,7 @@ def main():
             dist = 0.0
             err = 0.0
             for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-                item = sample_map[k].sample(n=1)
+                item = sample_map[k].sample(n=1, random_state=args.seed)
                 inp = np.matrix(item.iloc[:, 1:item.shape[1] - 1])
                 outp = np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]])
 
@@ -184,7 +186,7 @@ def main():
     with open(cache_file, "w") as f:
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-            item = sample_map[k].sample(n=1)
+            item = sample_map[k].sample(n=1, random_state=args.seed)
             m = np.matrix(item.iloc[:, 1:item.shape[1] - 1]).T
             pop = float(nn.feedforward(m))
             pop = np.exp(pop) - 10 ** -5

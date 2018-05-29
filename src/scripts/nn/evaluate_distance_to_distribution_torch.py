@@ -12,6 +12,7 @@ import pickle
 from data.generation import PoissonZipfGenerator, PoissonShuffleZipfGenerator
 import torch
 import os
+from scipy import stats
 
 
 def main():
@@ -182,16 +183,22 @@ def main():
     with open(cache_file, "w") as f:
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
+            if k <= 5000:
+                continue
             item = sample_map[k].sample(n=1, random_state=args.seed)
             pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
             pop = np.exp(-pop) - 10 ** -5
 
-            # tmp = np.exp(-np.matrix(item.iloc[:, 2:item.shape[1] - 1])) - 10 ** -5  # transform from log
+            # tmp = np.matrix(item.iloc[:, 1:item.shape[1] - 1])
+            # tmp = np.exp(-tmp) - 10 ** -5  # transform from log
             # pop = float(np.mean(tmp, axis=1))
 
             # tmp = np.exp(-np.matrix(item.iloc[:, -1:])) - 10 ** -5  # transform from log
             # pop = float(tmp)
             popularities.append((k, pop))
+
+        # print(np.mean([x[1] for x in popularities]))
+        # print(np.median([x[1] for x in popularities]))
 
         pops_sorted = list(sorted(popularities, key=lambda x: x[1], reverse=True))
         pop_order_predicted = [x[0] for x in pops_sorted]
