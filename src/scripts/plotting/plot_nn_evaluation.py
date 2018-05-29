@@ -38,11 +38,11 @@ def main():
 
     iters = range(1, len(optim_list) + 1)
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
-    fig.suptitle("Feedforward NN evaluation error\nOptimal error={}".format(optim_list[0]))
+    fig.suptitle("Feedforward NN evaluation error\nAverage predictor error={}".format(optim_list[0]))
 
-    max_ = np.max(valid_err)
-    min_ = np.min(train_err)
-    diff = max_ - min_
+    # max_ = np.max(valid_err)
+    # min_ = np.min(train_err)
+    # diff = max_ - min_
 
     sub1 = plt.subplot(111)
     if args.log_scale:

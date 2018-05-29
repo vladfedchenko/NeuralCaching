@@ -76,8 +76,7 @@ def main():
                         "--error_function",
                         help="error function to use",
                         type=str)
-    parser.add_argument("-s",
-                        "--seed",
+    parser.add_argument("--seed",
                         help="seed for item sampling",
                         type=int)
     # parser.add_argument("-aef",
@@ -110,6 +109,9 @@ def main():
         raise AttributeError("Unknown case passed")
 
     # End of section
+
+    if args.seed:
+        np.random.seed(args.seed)
 
     if not os.path.exists(args.directory):
         os.makedirs(args.directory)
@@ -154,7 +156,7 @@ def main():
             if args.train_sample_size is None:
                 train_data = data
             else:
-                train_data = data.sample(n=args.train_sample_size, random_state=args.seed)
+                train_data = data.sample(n=args.train_sample_size)
             inp = np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1])
             outp = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
             nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
@@ -162,7 +164,7 @@ def main():
             dist = 0.0
             err = 0.0
             for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-                item = sample_map[k].sample(n=1, random_state=args.seed)
+                item = sample_map[k].sample(n=1)
                 inp = np.matrix(item.iloc[:, 1:item.shape[1] - 1])
                 outp = np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]])
 
@@ -186,7 +188,7 @@ def main():
     with open(cache_file, "w") as f:
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-            item = sample_map[k].sample(n=1, random_state=args.seed)
+            item = sample_map[k].sample(n=1)
             m = np.matrix(item.iloc[:, 1:item.shape[1] - 1]).T
             pop = float(nn.feedforward(m))
             pop = np.exp(pop) - 10 ** -5

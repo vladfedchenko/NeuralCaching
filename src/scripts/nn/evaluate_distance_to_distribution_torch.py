@@ -109,6 +109,12 @@ def main():
 
     # End of section
 
+    if args.seed:
+        torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(args.seed)
+
     data = pd.read_csv(args.input, header=None)
 
     if not os.path.exists(args.directory):
@@ -151,7 +157,7 @@ def main():
             if args.train_sample_size is None:
                 train_data = data
             else:
-                train_data = data.sample(n=args.train_sample_size, random_state=args.seed)
+                train_data = data.sample(n=args.train_sample_size)
             inp = torch.from_numpy(np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1]))
             outp = torch.from_numpy(np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]]))
             nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
@@ -159,7 +165,7 @@ def main():
             dist = 0.0
             err = 0.0
             for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-                item = sample_map[k].sample(n=1, random_state=args.seed)
+                item = sample_map[k].sample(n=1)
                 inp = torch.from_numpy(np.matrix(item.iloc[:, 1:item.shape[1] - 1]))
                 outp = torch.from_numpy(np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))
 
@@ -185,7 +191,7 @@ def main():
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
             if k <= 5000:
                 continue
-            item = sample_map[k].sample(n=1, random_state=args.seed)
+            item = sample_map[k].sample(n=1)
             pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
             pop = np.exp(-pop) - 10 ** -5
 

@@ -77,6 +77,9 @@ def main():
                         "--input_has_labels",
                         help="pass this is input has class label. Needed for optimal predictor evaluation",
                         action="store_true")
+    parser.add_argument("--seed",
+                        help="seed for item sampling",
+                        type=int)
     args = parser.parse_args()
 
     if not os.path.exists(args.directory):
@@ -90,12 +93,18 @@ def main():
     n = len(data)
     train_size = n * args.train_validation_split
 
-    train_data = data.sample(n=int(train_size))
+    train_data = data.sample(n=int(train_size), random_state=args.seed)
     valid_data = data.drop(train_data.index)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # device = "cpu"
     print("Running on: {0}".format(device))
+
+    if args.seed:
+        torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(args.seed)
 
     if args.unpickle_file is not None:
         filename = "nn_{0}.p".format(args.unpickle_file)
