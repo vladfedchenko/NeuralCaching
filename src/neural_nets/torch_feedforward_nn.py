@@ -89,6 +89,8 @@ class TorchFeedforwardNN(nn.Module):
                 out = functional.relu(out)
             elif self.__hidden_activation == "l_relu":
                 out = functional.leaky_relu(out)
+            elif self.__hidden_activation == "softplus":
+                out = functional.softplus(out)
 
         out = self.__fc_output(out)
 
@@ -98,6 +100,8 @@ class TorchFeedforwardNN(nn.Module):
             out = functional.relu(out)
         elif self.__out_activation == "l_relu":
             out = functional.leaky_relu(out)
+        elif self.__out_activation == "softplus":
+            out = functional.softplus(out)
 
         return out
 

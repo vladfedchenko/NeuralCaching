@@ -6,6 +6,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("input",
@@ -35,14 +36,18 @@ def main():
         train_err = [float(line[0]) for line in lines]
         valid_err = [float(line[1]) for line in lines]
 
-    iters = range(1, len(valid_err) + 1)
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
     fig.suptitle(("Feedforward NN evaluation error\n"
                   "Training set average predictor error={}\n"
                   "Validation set average predictor error={}").format(train_err[0], valid_err[0]))
 
+    aver_train_err = train_err[0]
+    aver_valid_err = valid_err[0]
+
     train_err = train_err[1:]
     valid_err = valid_err[1:]
+
+    iters = range(1, len(valid_err) + 1)
 
     # max_ = np.max(valid_err)
     # min_ = np.min(train_err)
@@ -55,8 +60,12 @@ def main():
     # line_optim, = sub1.plot(iters, optim_list, "g", label="Optimal")
     line_min, = sub1.plot(iters, train_err, "b", label="Training error")
     line_max, = sub1.plot(iters, valid_err, "r", label="Validation error")
+
+    aver_train_line = sub1.axhline(aver_train_err, color="c", label="Training error (average predictor)")
+    aver_valid_line = sub1.axhline(aver_valid_err, color="m", label="Validation error (average predictor)")
+
     # sub1.legend(handles=[line_optim, line_min, line_max])
-    sub1.legend(handles=[line_min, line_max])
+    sub1.legend(handles=[line_min, line_max, aver_train_line, aver_valid_line])
     sub1.set_xlabel("Iterations")
     if args.log_scale:
         sub1.set_ylabel("Error (log)")

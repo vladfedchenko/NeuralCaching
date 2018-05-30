@@ -193,13 +193,13 @@ def main():
                 continue
             item = sample_map[k].sample(n=1)
             pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
-            pop = np.exp(-pop) - 10 ** -5
+            pop = np.exp(-pop) - 10 ** -8
 
             # tmp = np.matrix(item.iloc[:, 1:item.shape[1] - 1])
-            # tmp = np.exp(-tmp) - 10 ** -5  # transform from log
+            # tmp = np.exp(-tmp) - 10 ** -8  # transform from log
             # pop = float(np.mean(tmp, axis=1))
 
-            # tmp = np.exp(-np.matrix(item.iloc[:, -1:])) - 10 ** -5  # transform from log
+            # tmp = np.exp(-np.matrix(item.iloc[:, -1:])) - 10 ** -8  # transform from log
             # pop = float(tmp)
             popularities.append((k, pop))
 

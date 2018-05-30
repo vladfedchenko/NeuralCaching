@@ -85,7 +85,7 @@ class FeedforwardNNCacheTorch(AbstractCache):
         prediction_row = []
         for sketch in self.__count_min_sketches:
             frac = sketch.get_request_fraction(id_)
-            frac = -np.log(frac + 10**-5)
+            frac = -np.log(frac + 10**-8)
             prediction_row.append(frac)
 
         window_time = (time - self.__time_window * self.__processed_windows) / self.__time_window
@@ -93,7 +93,7 @@ class FeedforwardNNCacheTorch(AbstractCache):
 
         matr = torch.from_numpy(np.matrix([prediction_row]))
         pop_log = float(self.__trained_net(matr))
-        pop = np.exp(-pop_log) - 10**-5
+        pop = np.exp(-pop_log) - 10**-8
         return pop
 
     def __update_time(self, time: float):

@@ -124,7 +124,7 @@ def main():
             if args.input_has_labels:
                 tmp = tmp[:, 1:]
 
-            tmp = np.exp(tmp) - 10 ** -5
+            tmp = np.exp(tmp) - 10 ** -8
             # print(tmp[0, :], outp_valid[0, :])
 
             mean_vals = np.mean(tmp, axis=1)
