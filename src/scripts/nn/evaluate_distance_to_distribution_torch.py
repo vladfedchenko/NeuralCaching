@@ -191,7 +191,7 @@ def main():
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
             item = sample_map[k].sample(n=1)
             pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
-            pop = np.exp(-pop) - 10 ** -5
+            pop = np.exp(-pop) - 10 ** -8
 
             # tmp = np.matrix(item.iloc[:, 1:item.shape[1] - 1])
             # tmp = np.exp(-tmp) - 10 ** -8  # transform from log
@@ -201,8 +201,8 @@ def main():
             # pop = float(tmp)
             popularities.append((k, pop))
 
-        # print(np.mean([x[1] for x in popularities]))
-        # print(np.median([x[1] for x in popularities]))
+        print("Popularity mean: {}".format(np.mean([x[1] for x in popularities])))
+        print("Popularity median: {}".format(np.median([x[1] for x in popularities])))
 
         pops_sorted = list(sorted(popularities, key=lambda x: x[1], reverse=True))
         pop_order_predicted = [x[0] for x in pops_sorted]
