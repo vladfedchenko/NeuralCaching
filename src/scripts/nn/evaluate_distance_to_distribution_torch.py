@@ -121,7 +121,7 @@ def main():
         os.makedirs(args.directory)
 
     if args.unpickle_file is not None:
-        filename = "distance_nn_{0}.p".format(args.unpickle_file)
+        filename = "nn_{0}.p".format(args.unpickle_file)
         filename = os.path.join(args.directory, filename)
         with open(filename, "rb") as unpickle_file:
             nn = pickle.load(unpickle_file)
@@ -189,11 +189,9 @@ def main():
     with open(cache_file, "w") as f:
         popularities = []
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-            if k <= 5000:
-                continue
             item = sample_map[k].sample(n=1)
             pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
-            pop = np.exp(-pop) - 10 ** -8
+            pop = np.exp(-pop) - 10 ** -5
 
             # tmp = np.matrix(item.iloc[:, 1:item.shape[1] - 1])
             # tmp = np.exp(-tmp) - 10 ** -8  # transform from log
@@ -226,7 +224,7 @@ def main():
             f.write(f"{theory_hit} {practice_hit}\n")
 
     if args.pickle_file is not None:
-        filename = "distance_nn_{0}.p".format(args.pickle_file)
+        filename = "nn_{0}.p".format(args.pickle_file)
         filename = os.path.join(args.directory, filename)
         with open(filename, "wb") as pickle_file:
             pickle.dump(nn, pickle_file)

@@ -5,16 +5,14 @@ This script will produce two plots. First with mean, min and max accuracy. Secon
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("input",
+    parser.add_argument("directory",
                         type=str,
-                        help="input data file")
-    parser.add_argument("plot_name",
-                        type=str,
-                        help="plot file name")
+                        help="directory with data files")
     parser.add_argument("-x",
                         "--size_x",
                         type=int,
@@ -31,7 +29,8 @@ def main():
                         action="store_true")
     args = parser.parse_args()
 
-    with open(args.input, "r") as f:
+    inp = os.path.join(args.directory, "error.txt")
+    with open(inp, "r") as f:
         lines = [x.split() for x in f.readlines()]
         train_err = [float(line[0]) for line in lines]
         valid_err = [float(line[1]) for line in lines]
@@ -75,7 +74,8 @@ def main():
 
     # plt.ylim(min_ - 0.1 * diff, max_ + 0.1 * diff)
 
-    plt.savefig("{0}.png".format(args.plot_name))
+    plot_name = os.path.join(args.directory, "err_plot.png")
+    plt.savefig(plot_name)
 
 
 if __name__ == "__main__":
