@@ -362,7 +362,6 @@ class CountMinSketch:
         """
         hashes = int(math.log(1.0/(1.0 - probability), math.e))
         cells = int(max_cells / hashes)
-        assert(max_cells * hashes <= max_cells)
         return CountMinSketch(cells, hashes)
 
     # endregion
@@ -377,17 +376,18 @@ class CountMinSketch:
 
     # region Public methods
 
-    def update_counters(self, id_):
+    def update_counters(self, id_, addition: int=1):
         """
         Update counters of count-min sketch.
         :param id_: ID of the object.
+        :param addition: The amount to increase counter by.
         """
         for i, hash_add in enumerate(self.__hash_additions):
             hash_key = hash_add + str(id_)
             hash_val = hash(hash_key)
             cell = hash_val % self.__count_min_cells
-            self.__min_sketch_buckets[i, cell] += 1
-        self.__requests += 1
+            self.__min_sketch_buckets[i, cell] += addition
+        self.__requests += addition
 
     def get_count(self, id_) -> int:
         """

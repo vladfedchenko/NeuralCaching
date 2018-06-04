@@ -39,6 +39,11 @@ def main():
                         type=int,
                         help="number of sketches to predict with",
                         default=2)
+    parser.add_argument("-cmc",
+                        "--count_min_cells",
+                        type=int,
+                        help="count min cells",
+                        default=2)
     parser.add_argument("-sid",
                         "--save_id",
                         help="save id of the object",
@@ -83,7 +88,7 @@ def main():
                 input_df = input_df[input_df.from_start >= time_processed - args.window_size]
                 window_df = input_df[input_df.from_start < time_processed]
 
-                cm_cur = CountMinSketch.construct_by_constraints(0.001, 0.99)
+                cm_cur = CountMinSketch.construct_by_space(args.count_min_cells)
 
                 for index, row in tqdm(window_df.iterrows(), desc="Counting window entries"):
                     id_ = int(row.id)
@@ -95,7 +100,7 @@ def main():
 
                 if len(cm_sketches) == args.prediction_sketches + 1:
                     prev_win_start = time_processed - 2.0 * args.window_size
-                    prev_cm = CountMinSketch.construct_by_constraints(0.001, 0.99)
+                    prev_cm = CountMinSketch.construct_by_space(args.count_min_cells)
                     for index, row in tqdm(prev_win_df.iterrows(), desc="Producing DS entries"):
                         to_write = []
                         id_ = int(row.id)
