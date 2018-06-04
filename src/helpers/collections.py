@@ -306,6 +306,93 @@ class LRUQueue:
     # endregion
 
 
+class FullCounter:
+    """
+    An implementation of object that keeps the count of object appearances
+    """
+    # region Private variables
+
+    __requests = 0
+    __count_map = None
+
+    # endregion
+
+    # region Protected variables
+
+    # endregion
+
+    # region Public variables, properties
+
+    # endregion
+
+    # region Constructors
+
+    def __init__(self):
+        """
+        Construct a new FullCounter object.
+        """
+        super().__init__()
+        self.__requests = 0
+        self.__count_map = {}
+
+    # endregion
+
+    # region Private methods
+
+    # endregion
+
+    # region Protected methods
+
+    # endregion
+
+    # region Public methods
+
+    def update_counters(self, id_, addition: int=1):
+        """
+        Update counter.
+        :param id_: ID of the object.
+        :param addition: The amount to increase counter by.
+        """
+        if id_ in self.__count_map:
+            self.__count_map[id_] += addition
+        else:
+            self.__count_map[id_] = addition
+
+        self.__requests += addition
+
+    def get_count(self, id_) -> int:
+        """
+        Get access count.
+        :param id_: ID of the object.
+        :return: Hit count.
+        """
+        if id_ in self.__count_map:
+            return self.__count_map[id_]
+        else:
+            return 0
+
+    def get_request_number(self) -> int:
+        """
+        To get the number of requests to the count-min sketch.
+        :return: Number of requests
+        """
+        return self.__requests
+
+    def get_request_fraction(self, id_) -> float:
+        """
+        To get the approximated fraction of requests for some object out of all requests.
+        :param id_: ID of the object.
+        :return: Fraction of requests for this object.
+        """
+        count = self.get_count(id_)
+        if self.__requests > 0:
+            return float(count) / self.__requests
+        else:
+            return 0.0
+
+    # endregion
+
+
 class CountMinSketch:
     """
     A count–min sketch implementation.
