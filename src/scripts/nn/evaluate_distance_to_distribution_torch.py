@@ -11,6 +11,7 @@ from tqdm import tqdm
 import pickle
 from data.generation import PoissonZipfGenerator, PoissonShuffleZipfGenerator
 import torch
+import torch.utils.data
 import os
 
 
@@ -37,9 +38,6 @@ def calc_case_2_optim_err(data, has_labels):
     outp_pop1 = np.matrix(pop1.iloc[:, pop1.shape[1] - 1:pop1.shape[1]])
 
     outp_pop2 = np.matrix(pop2.iloc[:, pop2.shape[1] - 1:pop2.shape[1]])
-
-    if has_labels:
-        inp_pop1 = inp_pop1[:, 1:]
 
     err_sum_pop1 = calc_aver_error(inp_pop1, outp_pop1, has_labels) * len(pop1)
 
@@ -120,8 +118,7 @@ def main():
                         "--input_has_labels",
                         help="pass this is input has class label. Needed for optimal predictor evaluation",
                         action="store_true")
-    parser.add_argument("-s",
-                        "--seed",
+    parser.add_argument("--seed",
                         help="seed for item sampling",
                         type=int)
     parser.add_argument("-fc",
@@ -271,8 +268,6 @@ def main():
                 err /= len(dist_mapping)
 
                 dist /= 2.0
-                if args.adaptive_learning and dist > prev_dist:
-                    learning_rate /= 2.0
                 prev_dist = dist
 
                 f.write(f"{dist} {err}\n")
