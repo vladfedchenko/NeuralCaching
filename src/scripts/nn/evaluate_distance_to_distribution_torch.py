@@ -301,8 +301,16 @@ def main():
             # pop = float(tmp)
             popularities.append((k, pop))
 
-        print("Popularity mean: {}".format(np.mean([x[1] for x in popularities])))
-        print("Popularity median: {}".format(np.median([x[1] for x in popularities])))
+        mean_val = np.mean([x[1] for x in popularities])
+        median_val = np.median([x[1] for x in popularities])
+
+        print("Popularity mean: {}".format(mean_val))
+        print("Popularity median: {}".format(median_val))
+
+        stat_file = os.path.join(args.directory, "stat.txt")
+        with open(stat_file, "w") as f_stat:
+            f_stat.write("Popularity mean: {}".format(mean_val))
+            f_stat.write("Popularity median: {}".format(median_val))
 
         pops_sorted = list(sorted(popularities, key=lambda x: x[1], reverse=True))
         pop_order_predicted = [x[0] for x in pops_sorted]
