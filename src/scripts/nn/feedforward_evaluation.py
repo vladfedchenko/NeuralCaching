@@ -114,9 +114,9 @@ def main():
     if args.input_has_labels:
         tmp = tmp[:, 1:]
 
-    tmp = np.exp(-tmp) - 10**-8  # transform from log
+    tmp = np.exp(-tmp) - 10**-15  # transform from log
     mean_vals = np.mean(tmp, axis=1)
-    mean_vals = -np.log(mean_vals + 10 ** -8)  # transform to log
+    mean_vals = -np.log(mean_vals + 10 ** -15)  # transform to log
     # print(tmp[0, :], outp_valid[0, :])
 
     err = mean_vals - outp_valid

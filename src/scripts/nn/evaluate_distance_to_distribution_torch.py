@@ -12,7 +12,43 @@ import pickle
 from data.generation import PoissonZipfGenerator, PoissonShuffleZipfGenerator
 import torch
 import os
-from scipy import stats
+
+
+def calc_aver_error(inp, outp, has_labels):
+    tmp = inp
+    if has_labels:
+        tmp = tmp[:, 1:]
+
+    tmp = np.exp(-tmp) - 10 ** -15  # transform from log
+    mean_vals = np.mean(tmp, axis=1)
+    mean_vals = -np.log(mean_vals + 10 ** -15)  # transform to log
+    # print(tmp[0, :], outp_valid[0, :])
+
+    err = mean_vals - outp
+    optim_err = np.mean(np.multiply(err, err))
+    return optim_err
+
+
+def calc_case_2_optim_err(data, has_labels):
+    pop1 = data[data.ix[:, 0] <= 5000]
+    pop2 = data[data.ix[:, 0] > 5000]
+
+    inp_pop1 = np.matrix(pop1.iloc[:, 1:pop1.shape[1] - 1])
+    outp_pop1 = np.matrix(pop1.iloc[:, pop1.shape[1] - 1:pop1.shape[1]])
+
+    outp_pop2 = np.matrix(pop2.iloc[:, pop2.shape[1] - 1:pop2.shape[1]])
+
+    if has_labels:
+        inp_pop1 = inp_pop1[:, 1:]
+
+    err_sum_pop1 = calc_aver_error(inp_pop1, outp_pop1, has_labels) * len(pop1)
+
+    optim_pop2 = -np.log(10 ** -4 + 10 ** -15)  # transform to log
+    err_pop2 = outp_pop2 - optim_pop2
+    err_sum_pop2 = np.sum(np.multiply(err_pop2, err_pop2))
+
+    mean_err = (err_sum_pop1 + err_sum_pop2) / len(data)
+    return mean_err
 
 
 def main():
@@ -33,11 +69,21 @@ def main():
                         type=float,
                         help="learning rate",
                         default=0.01)
-    parser.add_argument("-ts",
-                        "--train_sample_size",
+    parser.add_argument("-s",
+                        "--sample",
                         type=int,
-                        help="number of samples to use on learning step. If not passed - whole dataset is used",
+                        help="number of samples to use from dataset. If not passed - whole dataset is used",
                         default=None)
+    parser.add_argument("-mb",
+                        "--mini_batch",
+                        type=int,
+                        help="minibatch size, 1000 is default",
+                        default=1000)
+    parser.add_argument("-tvs",
+                        "--train_validation_split",
+                        type=float,
+                        help="train - validation split fraction",
+                        default=0.8)
     parser.add_argument("-pf",
                         "--pickle_file",
                         type=int,
@@ -62,10 +108,6 @@ def main():
                         type=int,
                         help="case of data popularity distribution",
                         default=1)
-    parser.add_argument("-alr",
-                        "--adaptive_learning",
-                        help="use adaptive learning rate - decrease rate if error went up",
-                        action="store_true")
     parser.add_argument("-ha",
                         "--hidden_activation",
                         help="activation to use on hidden layers",
@@ -74,10 +116,18 @@ def main():
                         "--out_activation",
                         help="activation to use on out layer",
                         type=str)
+    parser.add_argument("-ihl",
+                        "--input_has_labels",
+                        help="pass this is input has class label. Needed for optimal predictor evaluation",
+                        action="store_true")
     parser.add_argument("-s",
                         "--seed",
                         help="seed for item sampling",
                         type=int)
+    parser.add_argument("-fc",
+                        "--force_cpu",
+                        help="force cpu execution for PyTorch",
+                        action="store_true")
     # parser.add_argument("-aef",
     #                     "--alternative_error_function",
     #                     help="use alternative error function - error for Poisson distribution",
@@ -117,8 +167,22 @@ def main():
 
     data = pd.read_csv(args.input, header=None)
 
+    if args.sample:
+        data = data.sample(n=args.sample)
+
+    n = len(data)
+    train_size = n * args.train_validation_split
+
+    train_data = data.sample(n=int(train_size))
+    valid_data = data.drop(train_data.index)
+
     if not os.path.exists(args.directory):
         os.makedirs(args.directory)
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if args.force_cpu:
+        device = "cpu"
+    print("Running on: {0}".format(device))
 
     if args.unpickle_file is not None:
         filename = "nn_{0}.p".format(args.unpickle_file)
@@ -130,6 +194,8 @@ def main():
         nn = TorchFeedforwardNN(layers,
                                 hidden_activation=args.hidden_activation,
                                 out_activation=args.out_activation)
+        if torch.cuda.is_available():
+            nn.to(device)
 
     sample_map = {}
     for k, v in tqdm(dist_mapping.items(), desc="Preprocessing dataset"):
@@ -138,52 +204,91 @@ def main():
     learning_rate = args.learning_rate
     prev_dist = 10**10
 
+    inp_train = np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1])
+    outp_train = np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]])
+
+    inp_valid = np.matrix(valid_data.iloc[:, 1:valid_data.shape[1] - 1])
+    outp_valid = np.matrix(valid_data.iloc[:, valid_data.shape[1] - 1:valid_data.shape[1]])
+
+    if args.case == 1:
+        optim_err = calc_aver_error(inp_valid, outp_valid, args.input_has_labels)
+        optim_err_train = calc_aver_error(inp_train, outp_train, args.input_has_labels)
+    elif args.case == 2:
+        optim_err = calc_case_2_optim_err(valid_data, args.input_has_labels)
+        optim_err_train = calc_case_2_optim_err(train_data, args.input_has_labels)
+    else:
+        raise AttributeError("Unknown case passed")
+
+    inp_train = torch.from_numpy(inp_train)
+    outp_train = torch.from_numpy(outp_train)
+    inp_valid = torch.from_numpy(inp_valid)
+    outp_valid = torch.from_numpy(outp_valid)
+
+    if torch.cuda.is_available():
+        inp_train = inp_train.to(device)
+        outp_train = outp_train.to(device)
+        inp_valid = inp_valid.to(device)
+        outp_valid = outp_valid.to(device)
+
     dist_file = os.path.join(args.directory, "distance.txt")
-    with open(dist_file, "w") as f:
+    error_file = os.path.join(args.directory, "error.txt")
+    with open(error_file, "w") as err_f:
+        with open(dist_file, "w") as f:
 
-        # dist = 0.0
-        # for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-        #     item = sample_map[k].sample(n=1)
-        #     pop = nn.evaluate(np.matrix(item.iloc[:, 1:item.shape[1] - 1]),
-        #                       np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))[0]
-        #
-        #     dist += abs(v - pop)
-        #
-        # dist /= 2.0
-        # f.write(f"{dist}\n")
-        # f.flush()
+            # dist = 0.0
+            # for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
+            #     item = sample_map[k].sample(n=1)
+            #     pop = nn.evaluate(np.matrix(item.iloc[:, 1:item.shape[1] - 1]),
+            #                       np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))[0]
+            #
+            #     dist += abs(v - pop)
+            #
+            # dist /= 2.0
+            # f.write(f"{dist}\n")
+            # f.flush()
+            err_f.write("{} {}\n".format(optim_err_train, optim_err))
+            for _ in tqdm(range(args.iterations), desc="Running iterations"):
+                train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(inp_train, outp_train),
+                                                           batch_size=args.mini_batch,
+                                                           shuffle=True)
+                for inp, target in tqdm(train_loader, desc="Running minibatches"):
+                    nn.backpropagation_learn(inp, target, args.learning_rate, show_progress=True, stochastic=False)
 
-        for _ in tqdm(range(args.iterations), desc="Running iterations"):
-            if args.train_sample_size is None:
-                train_data = data
-            else:
-                train_data = data.sample(n=args.train_sample_size)
-            inp = torch.from_numpy(np.matrix(train_data.iloc[:, 1:train_data.shape[1] - 1]))
-            outp = torch.from_numpy(np.matrix(train_data.iloc[:, train_data.shape[1] - 1:train_data.shape[1]]))
-            nn.backpropagation_learn(inp, outp, args.learning_rate, show_progress=True, stochastic=True)
+                dist = 0.0
+                err = 0.0
+                for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
+                    item = sample_map[k].sample(n=1)
+                    inp = torch.from_numpy(np.matrix(item.iloc[:, 1:item.shape[1] - 1]))
+                    outp = torch.from_numpy(np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))
 
-            dist = 0.0
-            err = 0.0
-            for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
-                item = sample_map[k].sample(n=1)
-                inp = torch.from_numpy(np.matrix(item.iloc[:, 1:item.shape[1] - 1]))
-                outp = torch.from_numpy(np.matrix(item.iloc[:, item.shape[1] - 1:item.shape[1]]))
+                    err += nn.evaluate(inp, outp)
 
-                err += nn.evaluate(inp, outp)
+                    pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
+                    pop = np.exp(-pop) - 10 ** -15
 
-                pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
+                    dist += abs(v - pop)
 
-                dist += abs(v - pop)
+                err /= len(dist_mapping)
 
-            err /= len(dist_mapping)
+                dist /= 2.0
+                if args.adaptive_learning and dist > prev_dist:
+                    learning_rate /= 2.0
+                prev_dist = dist
 
-            dist /= 2.0
-            if args.adaptive_learning and dist > prev_dist:
-                learning_rate /= 2.0
-            prev_dist = dist
+                f.write(f"{dist} {err}\n")
+                f.flush()
 
-            f.write(f"{dist} {err}\n")
-            f.flush()
+                train_err = nn.evaluate(inp_train, outp_train)
+                valid_err = nn.evaluate(inp_valid, outp_valid)
+
+                err_f.write("{} {}\n".format(train_err, valid_err))
+                err_f.flush()
+
+    if args.pickle_file is not None:
+        filename = "nn_{0}.p".format(args.pickle_file)
+        filename = os.path.join(args.directory, filename)
+        with open(filename, "wb") as pickle_file:
+            pickle.dump(nn, pickle_file)
 
     cache_file = os.path.join(args.directory, "cache_hit.txt")
     with open(cache_file, "w") as f:
@@ -191,13 +296,13 @@ def main():
         for k, v in tqdm(dist_mapping.items(), desc="Evaluating distance"):
             item = sample_map[k].sample(n=1)
             pop = float(nn(torch.Tensor(np.matrix(item.iloc[:, 1:item.shape[1] - 1])).double()))
-            pop = np.exp(-pop) - 10 ** -8
+            pop = np.exp(-pop) - 10 ** -15
 
             # tmp = np.matrix(item.iloc[:, 1:item.shape[1] - 1])
-            # tmp = np.exp(-tmp) - 10 ** -8  # transform from log
+            # tmp = np.exp(-tmp) - 10 ** -15  # transform from log
             # pop = float(np.mean(tmp, axis=1))
 
-            # tmp = np.exp(-np.matrix(item.iloc[:, -1:])) - 10 ** -8  # transform from log
+            # tmp = np.exp(-np.matrix(item.iloc[:, -1:])) - 10 ** -15  # transform from log
             # pop = float(tmp)
             popularities.append((k, pop))
 
@@ -222,12 +327,6 @@ def main():
             theory_hit += distrib_pop
             practice_hit += pred_item_pop
             f.write(f"{theory_hit} {practice_hit}\n")
-
-    if args.pickle_file is not None:
-        filename = "nn_{0}.p".format(args.pickle_file)
-        filename = os.path.join(args.directory, filename)
-        with open(filename, "wb") as pickle_file:
-            pickle.dump(nn, pickle_file)
 
 
 if __name__ == "__main__":

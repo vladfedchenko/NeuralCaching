@@ -111,9 +111,9 @@ def main():
                     data_inp = data_matrix[:, :-1]
                     data_outp = data_matrix[:, -1:]
                     if args.log_input:
-                        data_inp = np.log(data_inp + 10**-8)
+                        data_inp = np.log(data_inp + 10**-15)
                     if args.log_output:
-                        data_outp = np.log(data_outp + 10**-8)
+                        data_outp = np.log(data_outp + 10**-15)
 
                     if args.neg_input:
                         data_inp = -data_inp

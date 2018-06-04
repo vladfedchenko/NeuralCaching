@@ -54,11 +54,11 @@ def main():
                         action="store_true")
     parser.add_argument("-li",
                         "--log_input",
-                        help="transform the input data to log(x + 10^-8)",
+                        help="transform the input data to log(x + 10^-15)",
                         action="store_true")
     parser.add_argument("-lo",
                         "--log_output",
-                        help="transform the output data to log(y + 10^-8)",
+                        help="transform the output data to log(y + 10^-15)",
                         action="store_true")
     parser.add_argument("-ni",
                         "--neg_input",
@@ -113,7 +113,7 @@ def main():
                             frac = old_cm.get_request_fraction(id_)
 
                             if args.log_input:
-                                frac = np.log(frac + 10**-8)
+                                frac = np.log(frac + 10**-15)
 
                             if args.neg_input:
                                 frac = -frac
@@ -128,7 +128,7 @@ def main():
                         frac = cm_sketches[-1].get_request_fraction(id_)
 
                         if args.log_output:
-                            frac = np.log(frac + 10**-8)
+                            frac = np.log(frac + 10**-15)
 
                         if args.neg_output:
                             frac = -frac
