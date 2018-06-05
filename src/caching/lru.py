@@ -2,7 +2,7 @@
 This module contains the implementation of LRU cache.
 """
 from caching.abstract_cache import AbstractCache, NotEnoughStorage
-from helpers.collections import LRUQueue
+from helpers.collections import PriorityDict
 
 
 class LRUCache(AbstractCache):
@@ -13,7 +13,7 @@ class LRUCache(AbstractCache):
 
     # region Private variables
 
-    __access_queue = None
+    __access_priority_dict = None
 
     # endregion
 
@@ -33,7 +33,7 @@ class LRUCache(AbstractCache):
         :param size: Size of cache.
         """
         super().__init__(size)
-        self.__access_queue = LRUQueue()
+        self.__access_priority_dict = PriorityDict()
 
     # endregion
 
@@ -50,7 +50,7 @@ class LRUCache(AbstractCache):
         :param size: Size of the object.
         :param time: Time of the request.
         """
-        self.__access_queue.update(id_)
+        self.__access_priority_dict[id_] = time
 
     def _process_cache_miss(self, id_, size, time):
         """
@@ -63,14 +63,14 @@ class LRUCache(AbstractCache):
         free = self._free_cache
 
         while free < size:
-            if self.__access_queue.empty():
+            if len(self.__access_priority_dict) == 0:
                 raise NotEnoughStorage(f'Cache cannot hold object of size {size}')
 
-            i = self.__access_queue.pop()
+            i = self.__access_priority_dict.pop_smallest()
             self._remove_object(i)
             free = self._free_cache
 
-        self.__access_queue.put(id_)
+        self.__access_priority_dict[id_] = time
         self._store_object(id_, size)
 
     # endregion
