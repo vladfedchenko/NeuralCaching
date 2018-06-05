@@ -5,7 +5,7 @@ import argparse
 from tqdm import tqdm
 import pandas as pd
 import pickle
-from caching import FeedforwardNNCache
+from caching import *
 from caching.abstract_cache import AbstractCache
 
 
@@ -18,7 +18,7 @@ def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame) -> float:
     """
     requests = 0
     hits = 0.0
-    for i, row in tqdm(trace.iterrows(), desc="Running trace"):
+    for i, row in tqdm(trace.iterrows(), desc="Running trace", total=len(trace)):
         requests += 1
         if cache.request_object(row.id, 1, row.from_start):
             hits += 1.0
@@ -44,26 +44,28 @@ def main():
                         type=str)
     args = parser.parse_args()
 
-    with open("case1_count_min_nn.p", "rb") as unpickle_file:
-        nn = pickle.load(unpickle_file)
+    # with open("cache_nn_test/case1/nn_1.p", "rb") as unpickle_file:
+    #     nn = pickle.load(unpickle_file)
 
     input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
-    input_df = input_df.iloc[:1_000_000, :]
-    print(input_df.shape)
+    # input_df = input_df.iloc[:1_000_000, :]
+    # print(input_df.shape)
 
     with tqdm(total=args.max_cache, desc="Sizes processed") as pbar:
-        pbar.update(args.starting_cache)
         cur_size = args.starting_cache
         with open(args.output, 'w') as f:
             while cur_size <= args.max_cache:
                 # Feel free to change the type of cache to evaluate
 
-                cache = FeedforwardNNCache(cur_size, nn, 4, 0.001, 0.99, 1_000_000.0, 5)
+                # cache = FeedforwardNNCacheFullTorch(cur_size, nn, 4, 10_000_000, 5)
 
                 # cache = LRUCache(cur_size)
 
+                cache = ARCache(cur_size)
+
                 hit_rate = eval_cache_hit(cache, input_df)
-                f.write(f"{hit_rate}\n")
+                f.write(f"{cur_size} {hit_rate}\n")
+                f.flush()
 
                 cur_size += args.size_increment
                 pbar.update(args.size_increment)

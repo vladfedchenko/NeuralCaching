@@ -606,3 +606,6 @@ class PriorityDict(dict):
 
         while self:
             yield self.pop_smallest()
+
+    def empty(self) -> bool:
+        return len(self) == 0

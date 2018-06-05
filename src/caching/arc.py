@@ -2,7 +2,7 @@
 This module contains the implementation of ARC (Adaptive Replacement Cache).
 """
 from caching.abstract_cache import AbstractCache, CachingObjectError
-from helpers.collections import LRUQueue
+from helpers.collections import PriorityDict
 from helpers.errors import AlgorithmError
 
 
@@ -38,10 +38,10 @@ class ARCache(AbstractCache):
         :param size: Size of cache.
         """
         super().__init__(size)
-        self.__T1 = LRUQueue()
-        self.__T2 = LRUQueue()
-        self.__B1 = LRUQueue()
-        self.__B2 = LRUQueue()
+        self.__T1 = PriorityDict()
+        self.__T2 = PriorityDict()
+        self.__B1 = PriorityDict()
+        self.__B2 = PriorityDict()
         self.__p = 0
         self.__c = size
 
@@ -50,16 +50,16 @@ class ARCache(AbstractCache):
     # region Private methods
 
     # REPLACE procedure from ARC paper
-    def __replace(self, id_):
+    def __replace(self, id_, time):
         if ((not self.__T1.empty()) and (len(self.__T1) > self.__p)) \
                 or (id_ in self.__B2 and len(self.__T1) == self.__p):
-            rem = self.__T1.pop()
+            rem = self.__T1.pop_smallest()
             self._remove_object(rem)
-            self.__B1.update(rem)
+            self.__B1[rem] = time
         else:
-            rem = self.__T2.pop()
+            rem = self.__T2.pop_smallest()
             self._remove_object(rem)
-            self.__B2.update(rem)
+            self.__B2[rem] = time
 
     # endregion
 
@@ -77,8 +77,10 @@ class ARCache(AbstractCache):
 
         # ARC Case I
         if id_ in self.__T1:
-            self.__T1.remove(id_)
-        self.__T2.update(id_)
+            self.__T1[id_] = -1.0
+            p = self.__T1.pop_smallest()
+            assert p == id_
+        self.__T2[id_] = time
 
     def _process_cache_miss(self, id_, size, time):
         """
@@ -98,10 +100,13 @@ class ARCache(AbstractCache):
                 delta1 = len(self.__B2) / len(self.__B1)
             self.__p = min(self.__p + delta1, self.__c)
 
-            self.__replace(id_)
+            self.__replace(id_, time)
 
-            self.__B1.remove(id_)
-            self.__T2.update(id_)
+            self.__B1[id_] = -1.0
+            p = self.__B1.pop_smallest()
+            assert p == id_
+
+            self.__T2[id_] = time
             self._store_object(id_, size)
 
         # ARC Case III
@@ -112,10 +117,13 @@ class ARCache(AbstractCache):
                 delta2 = len(self.__B1) / len(self.__B2)
             self.__p = max(self.__p - delta2, 0)
 
-            self.__replace(id_)
+            self.__replace(id_, time)
 
-            self.__B2.remove(id_)
-            self.__T2.update(id_)
+            self.__B2[id_] = -1.0
+            p = self.__B2.pop_smallest()
+            assert p == id_
+
+            self.__T2[id_] = time
             self._store_object(id_, size)
 
         # ARC Case IV
@@ -123,23 +131,23 @@ class ARCache(AbstractCache):
             # Case A
             if len(self.__T1) + len(self.__B1) == self.__c:
                 if len(self.__T1) < self.__c:
-                    self.__B1.pop()
-                    self.__replace(id_)
+                    self.__B1.pop_smallest()
+                    self.__replace(id_, time)
                 else:
-                    rem = self.__T1.pop()
+                    rem = self.__T1.pop_smallest()
                     self._remove_object(rem)
 
             # Case B
             elif len(self.__T1) + len(self.__B1) < self.__c:
                 if len(self.__T1) + len(self.__B1) + len(self.__T2) + len(self.__B2) >= self.__c:
                     if len(self.__T1) + len(self.__B1) + len(self.__T2) + len(self.__B2) == 2 * self.__c:
-                        self.__B2.pop()
-                    self.__replace(id_)
+                        self.__B2.pop_smallest()
+                    self.__replace(id_, time)
             else:
                 raise AlgorithmError("Should not happen according to ARC algorithm.")
 
             self._store_object(id_, size)
-            self.__T1.update(id_)
+            self.__T1[id_] = time
 
     # endregion
 
