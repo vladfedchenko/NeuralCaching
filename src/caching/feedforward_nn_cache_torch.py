@@ -117,6 +117,7 @@ class FeedforwardNNCacheTorch(AbstractCache):
 
     def _process_cache_hit(self, id_, size, time):
         self.__update_time(time)
+        self.__count_min_sketches[-1].update_counters(id_)
         if len(self.__priority_dict) < self.__update_sample_size:
             real_update_size = len(self.__priority_dict)
         else:
@@ -124,10 +125,12 @@ class FeedforwardNNCacheTorch(AbstractCache):
 
         sample = random.sample(self.__priority_dict.keys(), real_update_size)
         for id_ in sample:
-            self.__predict_pop(id_, time)
+            pred_pop = self.__predict_pop(id_, time)
+            self.__priority_dict[id_] = pred_pop
 
     def _process_cache_miss(self, id_, size, time):
         self.__update_time(time)
+        self.__count_min_sketches[-1].update_counters(id_)
         pred_pop = self.__predict_pop(id_, time)
         if self._free_cache > 0:
             self._store_object(id_, size)
