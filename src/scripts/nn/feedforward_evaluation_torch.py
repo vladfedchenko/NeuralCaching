@@ -169,8 +169,9 @@ def main():
             for inp, target in tqdm(train_loader, desc="Running minibatches"):
                 nn.backpropagation_learn(inp, target, args.learning_rate, show_progress=True, stochastic=False)
 
-            train_err = nn.evaluate(inp_train, outp_train)
+            # train_err = nn.evaluate(inp_train, outp_train)
             valid_err = nn.evaluate(inp_valid, outp_valid)
+            train_err = valid_err
 
             f.write("{} {}\n".format(train_err, valid_err))
             f.flush()
