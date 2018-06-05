@@ -51,8 +51,8 @@ class ARCache(AbstractCache):
 
     # REPLACE procedure from ARC paper
     def __replace(self, id_, time):
-        if ((not self.__T1.empty()) and (len(self.__T1) > self.__p)) \
-                or (id_ in self.__B2 and len(self.__T1) == self.__p):
+        if (not self.__T1.empty()) and ((len(self.__T1) > self.__p) or
+                                        (id_ in self.__B2 and len(self.__T1) == self.__p)):
             rem = self.__T1.pop_smallest()
             self._remove_object(rem)
             self.__B1[rem] = time

@@ -127,7 +127,7 @@ class AbstractCache:
         :return: bool -> True if cache hit, False if not.
         :raises TimeOrderError: If the object is requested with less time than previous object (in the past).
         """
-        if time > self.__last_req_time:
+        if time >= self.__last_req_time:
             self.__last_req_time = time
             if self._is_cached(id_):
                 self._process_cache_hit(id_, size, time)
