@@ -40,10 +40,11 @@ def main():
     plotted = []
     for file_name, col in zip(txts, colors):
         with open(file_name, "r") as f:
-            lines = [x.split() for x in f.readlines()]
-            line_name = lines[0][0]
-
+            lines = f.readlines()
+            line_name = lines[0]
             lines = lines[1:]
+
+            lines = [x.split() for x in lines]
 
             cache_sizes = [int(x[0]) for x in lines]
             cache_hits = [float(x[1]) for x in lines]
