@@ -63,6 +63,10 @@ def main():
                         "--neg_output",
                         help="transform the output data to -x. Applied after log if log is passed",
                         action="store_true")
+    parser.add_argument("-hwp",
+                        "--half_window_prediction",
+                        help="make the output popularity at the end of current window until middle of window reached",
+                        action="store_true")
     parser.add_argument("-o",
                         "--output",
                         type=str,
@@ -117,10 +121,14 @@ def main():
 
                         # to_write.append(prev_cm.get_request_fraction(id_))
 
+                        time = (row.from_start - prev_win_start) / float(args.window_size)
                         if args.save_time:
-                            to_write.append((row.from_start - prev_win_start) / float(args.window_size))
+                            to_write.append(time)
 
-                        frac = cm_sketches[-1].get_request_fraction(id_)
+                        if args.half_window_prediction and time <= 0.5:
+                            frac = cm_sketches[-2].get_request_fraction(id_)
+                        else:
+                            frac = cm_sketches[-1].get_request_fraction(id_)
 
                         if args.log_output:
                             frac = np.log(frac + 10**-15)

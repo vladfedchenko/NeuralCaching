@@ -44,8 +44,8 @@ def main():
                         type=str)
     args = parser.parse_args()
 
-    # with open("cache_nn_test/case1/nn_1.p", "rb") as unpickle_file:
-    #     nn = pickle.load(unpickle_file)
+    with open("cache_nn_half_win/case1_sw/nn_1.p", "rb") as unpickle_file:
+        nn = pickle.load(unpickle_file)
 
     input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
     # input_df = input_df.iloc[:1_000_000, :]
@@ -57,11 +57,11 @@ def main():
             while cur_size <= args.max_cache:
                 # Feel free to change the type of cache to evaluate
 
-                # cache = FeedforwardNNCacheFullTorch(cur_size, nn, 4, 10_000_000, 5)
+                cache = FeedforwardNNCacheFullTorch(cur_size, nn, 4, 1_000_000, 5)
 
                 # cache = LRUCache(cur_size)
 
-                cache = ARCache(cur_size)
+                # cache = ARCache(cur_size)
 
                 hit_rate = eval_cache_hit(cache, input_df)
                 f.write(f"{cur_size} {hit_rate}\n")
