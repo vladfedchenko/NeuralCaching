@@ -44,9 +44,6 @@ def main():
                         type=str)
     args = parser.parse_args()
 
-    with open("cache_nn_half_win/case1_sw/nn_1.p", "rb") as unpickle_file:
-        nn = pickle.load(unpickle_file)
-
     input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
     # input_df = input_df.iloc[:1_000_000, :]
     # print(input_df.shape)
@@ -57,7 +54,11 @@ def main():
             while cur_size <= args.max_cache:
                 # Feel free to change the type of cache to evaluate
 
-                cache = FeedforwardNNCacheFullTorch(cur_size, nn, 4, 1_000_000, 5)
+                with open("cache_nn_half_win/case2_lw/nn_2.p", "rb") as unpickle_file:
+                    nn = pickle.load(unpickle_file)
+                cache = FeedforwardNNCacheFullTorch(cur_size, nn, 4, 10_000_000, 5)
+
+                # cache = FutureInfoCache(cur_size, "data/datasets/16_modified_traces/real_1000_mod_trace.csv")
 
                 # cache = LRUCache(cur_size)
 

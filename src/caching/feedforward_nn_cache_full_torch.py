@@ -115,10 +115,13 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         else:
             real_update_size = self.__update_sample_size
 
+        pred_pop = self.__predict_pop(id_, time)
+        self.__priority_dict[id_] = pred_pop
+
         sample = random.sample(self.__priority_dict.keys(), real_update_size)
-        for id_ in sample:
-            pred_pop = self.__predict_pop(id_, time)
-            self.__priority_dict[id_] = pred_pop
+        for i in sample:
+            pred_pop = self.__predict_pop(i, time)
+            self.__priority_dict[i] = pred_pop
 
     def _process_cache_miss(self, id_, size, time):
         self.__update_time(time)
