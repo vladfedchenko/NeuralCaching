@@ -54,11 +54,11 @@ def main():
             while cur_size <= args.max_cache:
                 # Feel free to change the type of cache to evaluate
 
-                with open("cache_nn_half_win/case2_lw/nn_2.p", "rb") as unpickle_file:
-                    nn = pickle.load(unpickle_file)
-                cache = FeedforwardNNCacheFullTorch(cur_size, nn, 4, 10_000_000, 5)
+                # with open("cache_nn_half_win/case2_lw/nn_2.p", "rb") as unpickle_file:
+                #     nn = pickle.load(unpickle_file)
+                # cache = FeedforwardNNCacheFullTorch(cur_size, nn, 4, 10_000_000, 5)
 
-                # cache = FutureInfoCache(cur_size, "data/datasets/16_modified_traces/real_1000_mod_trace.csv")
+                cache = FutureInfoCache(cur_size, "data/datasets/16_modified_traces/real_500_mod_trace.csv")
 
                 # cache = LRUCache(cur_size)
 
