@@ -21,6 +21,10 @@ def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame, cold_start_skip: i
     hits = 0.0
     i = 0
     for _, row in tqdm(trace.iterrows(), desc="Running trace", total=len(trace)):
+        if i < cold_start_skip:
+            cache.request_object(row.id, 1, row.from_start)
+            i += 1
+            continue
 
         requests += 1
         if cache.request_object(row.id, 1, row.from_start):
