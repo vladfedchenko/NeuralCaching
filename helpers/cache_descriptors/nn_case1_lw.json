@@ -1,0 +1,6 @@
+{
+  "counter_num" : "4",
+  "nn_location" : "data/misc/21_nn_cache/cache_nn_half_win/case1_lw/nn_1.p",
+  "time_window" : "10_000_000",
+  "update_sample_size" : "5"
+}
