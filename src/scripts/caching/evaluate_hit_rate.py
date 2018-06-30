@@ -73,7 +73,7 @@ def main():
             while cur_size <= args.max_cache:
 
                 desc = None
-                if args.c is not None:
+                if args.cache_descriptor is not None:
                     with open(args.cache_descriptor) as f:
                         desc = json.load(f)
 
