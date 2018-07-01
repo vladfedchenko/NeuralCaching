@@ -74,8 +74,8 @@ def main():
 
                 desc = None
                 if args.cache_descriptor is not None:
-                    with open(args.cache_descriptor) as f:
-                        desc = json.load(f)
+                    with open(args.cache_descriptor) as f_desc:
+                        desc = json.load(f_desc)
 
                 if args.cache_type == "nn":
                     with open(desc["nn_location"], "rb") as unpickle_file:
