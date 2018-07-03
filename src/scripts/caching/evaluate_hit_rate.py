@@ -77,7 +77,13 @@ def main():
                     with open(args.cache_descriptor) as f_desc:
                         desc = json.load(f_desc)
 
-                if args.cache_type == "nn":
+                if args.cache_type == "average":
+                    cache = AveragePredictorCache(cur_size,
+                                                  int(desc["counter_num"]),
+                                                  float(desc["time_window"]),
+                                                  int(desc["update_sample_size"]))
+
+                elif args.cache_type == "nn":
                     with open(desc["nn_location"], "rb") as unpickle_file:
                         nn = pickle.load(unpickle_file)
                     cache = FeedforwardNNCacheFullTorch(cur_size,
