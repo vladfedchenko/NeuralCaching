@@ -109,7 +109,8 @@ class TorchFeedforwardNN(nn.Module):
                               outputs: torch.Tensor,
                               learn_rate: float = 0.1,
                               stochastic: bool = True,
-                              show_progress: bool = False):
+                              show_progress: bool = False,
+                              weight: float = 1.0):
         """
         Update the weights of the NN using error backward propagation algorithm.
         Stochastic gradient descent is the basis.
@@ -118,6 +119,7 @@ class TorchFeedforwardNN(nn.Module):
         :param learn_rate: Learning rate parameter.
         :param stochastic: Use stochastic gradient descent.
         :param show_progress: Show progress bar.
+        :param weight: Apply weight to loss.
         """
         n = inputs.shape[0]
 
@@ -133,7 +135,7 @@ class TorchFeedforwardNN(nn.Module):
                 self.zero_grad()
                 out = self(inp)
 
-                loss = self.__criterion(out, target)
+                loss = self.__criterion(out, target) * weight
                 loss.backward()
                 for f in self.parameters():
                     f.data.sub_(f.grad.data * learn_rate)
@@ -141,7 +143,7 @@ class TorchFeedforwardNN(nn.Module):
             self.zero_grad()
             out = self(inputs)
 
-            loss = self.__criterion(out, outputs)
+            loss = self.__criterion(out, outputs) * weight
             loss.backward()
             for f in self.parameters():
                 f.data.sub_(f.grad.data * learn_rate)

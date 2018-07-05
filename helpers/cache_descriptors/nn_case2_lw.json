@@ -2,5 +2,8 @@
   "counter_num" : "4",
   "nn_location" : "data/misc/21_nn_cache/cache_nn_half_win/case2_lw/nn_1.p",
   "time_window" : "10_000_000",
-  "update_sample_size" : "5"
+  "update_sample_size" : "5",
+  "online_learning" : "False",
+  "cf_coef" : "0.5",
+  "learning_rate" : "0.001"
 }
