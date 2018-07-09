@@ -7,6 +7,7 @@ from helpers.collections import FullCounter, PriorityDict
 import random
 import numpy as np
 import torch
+import torch.utils.data
 
 
 class FeedforwardNNCacheFullTorch(AbstractCache):
@@ -27,6 +28,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
     __past_dfs = []
     __past_pop = []
     __learning_rate = 0.0
+    __batch_size = 0
 
     # endregion
 
@@ -48,7 +50,8 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
                  update_sample_size: int=5,
                  online_learning: bool=False,
                  cf_coef: float=0.5,
-                 learning_rate: float=0.001):
+                 learning_rate: float=0.001,
+                 batch_size: int=1000):
         """
         Construct a new FeedforwardNNCache object.
         :param size: Size of cache.
@@ -59,6 +62,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         :param online_learning: Use online learning mechanism.
         :param cf_coef: Coefficient to prevent catastrophic forgetting while learning online.
         :param learning_rate: Learning rate for online learning.
+        :param batch_size: Batch size used while learning.
         """
         super().__init__(size)
         self.__trained_net = trained_net
@@ -86,6 +90,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         self.__past_dfs = [None] * past_df_count
         self.__past_pop = [None] * past_df_count
         self.__learning_rate = learning_rate
+        self.__batch_size = batch_size
 
     # endregion
 
@@ -133,15 +138,19 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         self.__past_pop[0] = [self.__counters[-1].get_request_fraction(x) for x in self.__past_pop[0]]
         self.__past_pop[0] = torch.from_numpy(-np.log(np.matrix(self.__past_pop[0]).T + 10**-15))
 
-        for i, inp in enumerate(self.__past_dfs):
-            if inp is None:
+        for i, inp_all in enumerate(self.__past_dfs):
+            if inp_all is None:
                 continue
 
-            target = self.__past_pop[i]
+            target_all = self.__past_pop[i]
 
             weight = self.__cf_coef**i
 
-            self.__trained_net.backpropagation_learn(inp, target, self.__learning_rate, True, False, weight)
+            train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(inp_all, target_all),
+                                                       batch_size=self.__batch_size,
+                                                       shuffle=True)
+            for inp, target in train_loader:
+                self.__trained_net.backpropagation_learn(inp, target, self.__learning_rate, False, False, weight)
 
         for i in reversed(range(len(self.__past_dfs) - 1)):
             self.__past_pop[i + 1] = self.__past_pop[i]

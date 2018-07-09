@@ -93,7 +93,8 @@ def main():
                                                         int(desc["update_sample_size"]),
                                                         bool(desc["online_learning"]),
                                                         float(desc["cf_coef"]),
-                                                        float(desc["learning_rate"]))
+                                                        float(desc["learning_rate"]),
+                                                        int(desc["batch_size"]))
 
                 elif args.cache_type == "future":
                     cache = FutureInfoCache(cur_size, desc["mod_trace_path"])
