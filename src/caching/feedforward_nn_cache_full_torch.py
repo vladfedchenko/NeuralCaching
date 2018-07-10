@@ -21,7 +21,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
     __from_window_start = 0.0
     __priority_dict = None
     __update_sample_size = 0
-    __start_time = None
+    __prev_time = None
 
     __online = False
     __cf_coef = 0.0
@@ -164,13 +164,13 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         Updates time related activity - active sketches, time from window start, etc.
         :param time: Time of object arrival.
         """
-        if self.__start_time is None:
-            self.__start_time = time
+        if self.__prev_time is None:
+            self.__prev_time = time
 
-        new_time = time - self.__start_time - self.__time_window * self.__processed_windows
-        assert new_time >= 0.0
+        added_time = time - self.__prev_time
+        assert added_time >= 0.0
 
-        self.__from_window_start = new_time
+        self.__from_window_start += added_time
 
         while self.__from_window_start > self.__time_window:
             if self.__online:
