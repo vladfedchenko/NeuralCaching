@@ -8,6 +8,7 @@ import random
 import numpy as np
 import torch
 import torch.utils.data
+import math
 
 
 class FeedforwardNNCacheFullTorch(AbstractCache):
@@ -207,6 +208,8 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         self.__update_time(time)
         self.__counters[-1].update_counters(id_)
         pred_pop = self.__predict_pop(id_, time, True)
+        assert not math.isnan(pred_pop)
+
         if self._free_cache > 0:
             self._store_object(id_, size)
             self.__priority_dict[id_] = pred_pop
