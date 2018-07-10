@@ -167,7 +167,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         if self.__start_time is None:
             self.__start_time = time
 
-        added_time = self.__start_time - time - self.__time_window * self.__processed_windows
+        added_time = time - self.__start_time - self.__time_window * self.__processed_windows
         self.__from_window_start += added_time
 
         while self.__from_window_start > self.__time_window:
