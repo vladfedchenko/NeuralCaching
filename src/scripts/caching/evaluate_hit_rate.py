@@ -86,12 +86,14 @@ def main():
                 elif args.cache_type == "nn":
                     with open(desc["nn_location"], "rb") as unpickle_file:
                         nn = pickle.load(unpickle_file)
+
+                    online = (desc["online_learning"] == "True")
                     cache = FeedforwardNNCacheFullTorch(cur_size,
                                                         nn,
                                                         int(desc["counter_num"]),
                                                         float(desc["time_window"]),
                                                         int(desc["update_sample_size"]),
-                                                        bool(desc["online_learning"]),
+                                                        online,
                                                         float(desc["cf_coef"]),
                                                         float(desc["learning_rate"]),
                                                         int(desc["batch_size"]))
