@@ -111,7 +111,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
             frac = -np.log(frac + 10**-15)
             prediction_row.append(frac)
 
-        window_time = (time - self.__time_window * self.__processed_windows) / self.__time_window
+        window_time = self.__from_window_start / self.__time_window
         prediction_row.append(window_time)
 
         np_matr = np.matrix([prediction_row])
