@@ -19,6 +19,7 @@ class AveragePredictorCache(AbstractCache):
     __from_window_start = 0.0
     __priority_dict = None
     __update_sample_size = 0
+    __prev_time = None
 
     # endregion
 
@@ -92,7 +93,13 @@ class AveragePredictorCache(AbstractCache):
         Updates time related activity - active sketches, time from window start, etc.
         :param time: Time of object arrival.
         """
-        added_time = time - self.__time_window * self.__processed_windows
+        if self.__prev_time is None:
+            self.__prev_time = time
+
+        added_time = time - self.__prev_time
+        assert added_time >= 0.0
+        self.__prev_time = time
+
         self.__from_window_start += added_time
 
         while self.__from_window_start > self.__time_window:
