@@ -84,8 +84,10 @@ def main():
                                                   int(desc["update_sample_size"]))
 
                 elif args.cache_type == "nn":
-                    with open(desc["nn_location"], "rb") as unpickle_file:
-                        nn = pickle.load(unpickle_file)
+                    nn = None
+                    if desc["nn_location"] != "":
+                        with open(desc["nn_location"], "rb") as unpickle_file:
+                            nn = pickle.load(unpickle_file)
 
                     online = (desc["online_learning"] == "True")
                     cache = FeedforwardNNCacheFullTorch(cur_size,

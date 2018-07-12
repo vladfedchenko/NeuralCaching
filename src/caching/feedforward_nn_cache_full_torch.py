@@ -66,7 +66,10 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         :param batch_size: Batch size used while learning.
         """
         super().__init__(size)
-        self.__trained_net = trained_net
+        if trained_net is not None:
+            self.__trained_net = trained_net
+        else:
+            self.__trained_net = TorchFeedforwardNN([counter_num + 1, 128, 128, 1], "l_relu", "l_relu")
 
         self.__counters = []
         for i in range(counter_num):
