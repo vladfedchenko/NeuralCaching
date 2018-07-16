@@ -65,7 +65,7 @@ class ARCache(AbstractCache):
 
     # region Protected methods
 
-    def _process_cache_hit(self, id_, size, time):
+    def _process_cache_hit(self, id_, size, time, metadata):
         """
         Move object to MRU in T2. Case I in ARC paper.
         :param id_: ID of the object.
@@ -82,7 +82,7 @@ class ARCache(AbstractCache):
             assert p == id_
         self.__T2[id_] = time
 
-    def _process_cache_miss(self, id_, size, time):
+    def _process_cache_miss(self, id_, size, time, metadata):
         """
         Implementing cases II-IV in ARC paper.
         :param id_: ID of the object

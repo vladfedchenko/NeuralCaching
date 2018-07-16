@@ -94,23 +94,25 @@ class AbstractCache:
         """
         return self.__free_cache
 
-    def _process_cache_hit(self, id_, size, time):
+    def _process_cache_hit(self, id_, size, time, metadata):
         """
         Implement here all required to process cache hit.
         All subclasses need to implement this method.
         :param id_: ID of the object.
         :param size: Size of the object.
         :param time: Time of the request.
+        :param metadata: Some additional metadata if a children class requires.
         """
         raise NotImplementedError('Subclasses of AbstractCache need to implement __process_cache_hit')
 
-    def _process_cache_miss(self, id_, size, time):
+    def _process_cache_miss(self, id_, size, time, metadata):
         """
         Implement here all required to process cache miss.
         All subclasses need to implement this method.
         :param id_: ID of the object.
         :param size: Size of the object.
         :param time: Time of the request.
+        :param metadata: Some additional metadata if a children class requires.
         """
         raise NotImplementedError('Subclasses of AbstractCache need to implement __process_cache_miss')
 
@@ -118,22 +120,23 @@ class AbstractCache:
 
     # region Public methods
 
-    def request_object(self, id_, size, time):
+    def request_object(self, id_, size, time, metadata: dict=None):
         """
         Method to request an object. Can be already stored in the cache or not.
         :param id_: ID of the object.
         :param size: Size of the object.
         :param time: Time of the request.
+        :param metadata: Some additional metadata if a children class requires.
         :return: bool -> True if cache hit, False if not.
         :raises TimeOrderError: If the object is requested with less time than previous object (in the past).
         """
         if time >= self.__last_req_time:
             self.__last_req_time = time
             if self._is_cached(id_):
-                self._process_cache_hit(id_, size, time)
+                self._process_cache_hit(id_, size, time, metadata)
                 return True
             else:
-                self._process_cache_miss(id_, size, time)
+                self._process_cache_miss(id_, size, time, metadata)
                 return False
         else:
             raise TimeOrderError('Wrong request time order: {0} <= {1}'.format(time, self.__last_req_time))

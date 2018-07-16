@@ -64,7 +64,7 @@ class FutureInfoCache(AbstractCache):
 
     # region Protected methods
 
-    def _process_cache_hit(self, id_, size, time):
+    def _process_cache_hit(self, id_, size, time, metadata):
         if len(self.__priority_dict) < self.__update_sample_size:
             real_update_size = len(self.__priority_dict)
         else:
@@ -78,7 +78,7 @@ class FutureInfoCache(AbstractCache):
         #     pred_pop = self.__predict_pop(id_, time)
         #     self.__priority_dict[id_] = pred_pop
 
-    def _process_cache_miss(self, id_, size, time):
+    def _process_cache_miss(self, id_, size, time, metadata):
         pred_pop = self.__predict_pop(id_, time)
         if self._free_cache > 0:
             self._store_object(id_, size)

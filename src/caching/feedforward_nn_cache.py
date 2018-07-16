@@ -110,7 +110,7 @@ class FeedforwardNNCache(AbstractCache):
 
     # region Protected methods
 
-    def _process_cache_hit(self, id_, size, time):
+    def _process_cache_hit(self, id_, size, time, metadata):
         self.__update_time(time)
         if len(self.__priority_dict) < self.__update_sample_size:
             real_update_size = len(self.__priority_dict)
@@ -121,7 +121,7 @@ class FeedforwardNNCache(AbstractCache):
         for id_ in sample:
             self.__predict_pop(id_, time)
 
-    def _process_cache_miss(self, id_, size, time):
+    def _process_cache_miss(self, id_, size, time, metadata):
         self.__update_time(time)
         pred_pop = self.__predict_pop(id_, time)
         if self._free_cache > 0:

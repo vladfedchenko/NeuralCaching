@@ -50,7 +50,7 @@ class LFUCache(AbstractCache):
 
     # region Protected methods
 
-    def _process_cache_hit(self, id_, size, time):
+    def _process_cache_hit(self, id_, size, time, metadata):
         """
         If hit - update occurrence counters. Update hit map.
         :param id_: ID of the object.
@@ -61,7 +61,7 @@ class LFUCache(AbstractCache):
         curr_freq = self.__min_sketch.get_count(id_)
         self.__hit_map[id_] = curr_freq
 
-    def _process_cache_miss(self, id_, size, time):
+    def _process_cache_miss(self, id_, size, time, metadata):
         """
         Remove least frequently used object (LFU policy).
         Update counter for current object.

@@ -115,7 +115,7 @@ class FeedforwardNNCacheTorch(AbstractCache):
 
     # region Protected methods
 
-    def _process_cache_hit(self, id_, size, time):
+    def _process_cache_hit(self, id_, size, time, metadata):
         self.__update_time(time)
         self.__count_min_sketches[-1].update_counters(id_)
         if len(self.__priority_dict) < self.__update_sample_size:
@@ -131,7 +131,7 @@ class FeedforwardNNCacheTorch(AbstractCache):
             pred_pop = self.__predict_pop(i, time)
             self.__priority_dict[i] = pred_pop
 
-    def _process_cache_miss(self, id_, size, time):
+    def _process_cache_miss(self, id_, size, time, metadata):
         self.__update_time(time)
         self.__count_min_sketches[-1].update_counters(id_)
         pred_pop = self.__predict_pop(id_, time)

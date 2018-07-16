@@ -43,7 +43,7 @@ class LRUCache(AbstractCache):
 
     # region Protected methods
 
-    def _process_cache_hit(self, id_, size, time):
+    def _process_cache_hit(self, id_, size, time, metadata):
         """
         Only update last access time for cached objects.
         :param id_: ID of the object.
@@ -52,7 +52,7 @@ class LRUCache(AbstractCache):
         """
         self.__access_priority_dict[id_] = time
 
-    def _process_cache_miss(self, id_, size, time):
+    def _process_cache_miss(self, id_, size, time, metadata):
         """
         Remove oldest accessed object (LRU policy). Store requested object.
         :param id_: ID of the object.
