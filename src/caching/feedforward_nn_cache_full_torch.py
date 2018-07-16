@@ -31,6 +31,8 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
     __learning_rate = 0.0
     __batch_size = 0
 
+    __metadata_cache = {}
+
     # endregion
 
     # region Protected variables
@@ -69,7 +71,8 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         if trained_net is not None:
             self.__trained_net = trained_net
         else:
-            self.__trained_net = TorchFeedforwardNN([counter_num + 1, 128, 128, 1], "l_relu", "l_relu")
+            # self.__trained_net = TorchFeedforwardNN([counter_num + 1, 128, 128, 1], "l_relu", "l_relu")
+            self.__trained_net = None
 
         self.__counters = []
         for i in range(counter_num):
@@ -100,12 +103,13 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
 
     # region Private methods
 
-    def __predict_pop(self, id_, time: float, new_entry: bool) -> float:
+    def __predict_pop(self, id_, time: float, new_entry: bool, metadata: dict) -> float:
         """
         Predict popularity of object using NN and sketches.
         :param id_: ID of the object.
         :param time: Time of arrival.
         :param new_entry: Prediction is for newly arrived object.
+        :param metadata: Some additional metadata.
         :return: Predicted popularity.
         """
         prediction_row = []
@@ -116,6 +120,12 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
 
         window_time = self.__from_window_start / self.__time_window
         prediction_row.append(window_time)
+
+        if metadata is not None and len(metadata) > 0:
+            prediction_row.append(metadata["size"])
+
+        if self.__trained_net is None:
+            self.__trained_net = TorchFeedforwardNN([len(prediction_row), 128, 128, 1], "l_relu", "l_relu")
 
         np_matr = np.matrix([prediction_row])
         matr = torch.from_numpy(np_matr)
@@ -153,6 +163,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
             train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(inp_all, target_all),
                                                        batch_size=self.__batch_size,
                                                        shuffle=True)
+
             for inp, target in train_loader:
                 self.__trained_net.backpropagation_learn(inp, target, self.__learning_rate, False, False, weight)
 
@@ -194,23 +205,27 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
     def _process_cache_hit(self, id_, size, time, metadata):
         self.__update_time(time)
         self.__counters[-1].update_counters(id_)
+        self.__metadata_cache[id_] = metadata
+
         if len(self.__priority_dict) < self.__update_sample_size:
             real_update_size = len(self.__priority_dict)
         else:
             real_update_size = self.__update_sample_size
 
-        pred_pop = self.__predict_pop(id_, time, True)
+        pred_pop = self.__predict_pop(id_, time, True, metadata)
         self.__priority_dict[id_] = pred_pop
 
         sample = random.sample(self.__priority_dict.keys(), real_update_size)
         for i in sample:
-            pred_pop = self.__predict_pop(i, time, False)
+            pred_pop = self.__predict_pop(i, time, False, self.__metadata_cache[i])
             self.__priority_dict[i] = pred_pop
 
     def _process_cache_miss(self, id_, size, time, metadata):
         self.__update_time(time)
         self.__counters[-1].update_counters(id_)
-        pred_pop = self.__predict_pop(id_, time, True)
+        self.__metadata_cache[id_] = metadata
+
+        pred_pop = self.__predict_pop(id_, time, True, metadata)
         assert not math.isnan(pred_pop)
 
         if self._free_cache > 0:
@@ -220,10 +235,13 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         else:
             candidate = self.__priority_dict.smallest()
             if pred_pop > self.__priority_dict[candidate]:
+                del self.__metadata_cache[candidate]
                 self._remove_object(candidate)
                 self._store_object(id_, size)
                 self.__priority_dict.pop_smallest()
                 self.__priority_dict[id_] = pred_pop
+            else:
+                del self.__metadata_cache[id_]
 
     # endregion
 

@@ -15,19 +15,21 @@ def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame, cold_start_skip: i
     Evaluate cache hit on some trace.
     :param cache: Cache object.
     :param trace: Object trace.
-    :return: Cache hit rate
+    :param cold_start_skip: Skip a number of items when evaluating hit rate to avoid cold start.
+    :return: Cache hit rate.
     """
     requests = 0
     hits = 0.0
     i = 0
+    metadata = None
     for _, row in tqdm(trace.iterrows(), desc="Running trace", total=len(trace)):
         if i < cold_start_skip:
-            cache.request_object(row.id, 1, row.from_start)
+            cache.request_object(row.id, 1, row.from_start, {"size": row.size})
             i += 1
             continue
 
         requests += 1
-        if cache.request_object(row.id, 1, row.from_start):
+        if cache.request_object(row.id, 1, row.from_start, {"size": row.size}):
             hits += 1.0
     return hits / requests
 
@@ -63,7 +65,7 @@ def main():
                         default=0)
     args = parser.parse_args()
 
-    input_df = pd.read_csv(args.input, header=None, names=["from_start", "from_prev", "id"])
+    input_df = pd.read_csv(args.input, header=None, names=["from_start", "size", "id"])
     # input_df = input_df.iloc[:1_000_000, :]
     # print(input_df.shape)
 
