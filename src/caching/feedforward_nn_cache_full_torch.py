@@ -122,7 +122,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         prediction_row.append(window_time)
 
         if metadata is not None and len(metadata) > 0:
-            prediction_row.append(metadata["size"])
+            prediction_row.append(np.log(metadata["size"] + 10**-15))
 
         if self.__trained_net is None:
             self.__trained_net = TorchFeedforwardNN([len(prediction_row), 128, 128, 1], "l_relu", "l_relu")
