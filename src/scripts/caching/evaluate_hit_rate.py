@@ -24,12 +24,12 @@ def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame, cold_start_skip: i
     metadata = None
     for _, row in tqdm(trace.iterrows(), desc="Running trace", total=len(trace)):
         if i < cold_start_skip:
-            cache.request_object(row.id, 1, row.from_start, {"size": row.size})
+            cache.request_object(row.id, 1, row.from_start, {"size": row.file_size})
             i += 1
             continue
 
         requests += 1
-        if cache.request_object(row.id, 1, row.from_start, {"size": row.size}):
+        if cache.request_object(row.id, 1, row.from_start, {"size": row.file_size}):
             hits += 1.0
     return hits / requests
 
@@ -65,7 +65,7 @@ def main():
                         default=0)
     args = parser.parse_args()
 
-    input_df = pd.read_csv(args.input, header=None, names=["from_start", "size", "id"])
+    input_df = pd.read_csv(args.input, header=None, names=["from_start", "file_size", "id"])
     # input_df = input_df.iloc[:1_000_000, :]
     # print(input_df.shape)
 
