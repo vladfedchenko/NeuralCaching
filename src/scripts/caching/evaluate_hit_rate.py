@@ -8,6 +8,7 @@ import pickle
 from caching import *
 from caching.abstract_cache import AbstractCache
 import json
+import torch
 
 
 def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame, cold_start_skip: int) -> float:
@@ -63,7 +64,18 @@ def main():
                         help="number of requests to skip when evaluating hit rate",
                         type=int,
                         default=0)
+    parser.add_argument("-fc",
+                        "--force_cpu",
+                        help="force cpu execution for PyTorch",
+                        action="store_true")
     args = parser.parse_args()
+
+    if not args.force_cpu and torch.cuda.is_available():
+        print("Running on: GPU")
+        torch.set_default_tensor_type("torch.cuda.FloatTensor")
+    else:
+        print("Running on: CPU")
+        torch.set_default_tensor_type("torch.FloatTensor")
 
     input_df = pd.read_csv(args.input, header=None, names=["from_start", "file_size", "id"])
     # input_df = input_df.iloc[:1_000_000, :]

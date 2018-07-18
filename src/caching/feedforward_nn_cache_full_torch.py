@@ -127,8 +127,8 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         if self.__trained_net is None:
             self.__trained_net = TorchFeedforwardNN([len(prediction_row), 128, 128, 1], "l_relu", "l_relu")
 
-        np_matr = np.matrix([prediction_row])
-        matr = torch.from_numpy(np_matr)
+        # np_matr = np.matrix([prediction_row])
+        matr = torch.tensor([prediction_row])
         pop_log = float(self.__trained_net(matr))
         pop = np.exp(-pop_log) - 10**-15
 
@@ -146,11 +146,11 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         """
         Start online learning.
         """
-        self.__past_dfs[0] = np.matrix(self.__past_dfs[0])
-        self.__past_dfs[0] = torch.from_numpy(self.__past_dfs[0])
+        # self.__past_dfs[0] = np.matrix(self.__past_dfs[0])
+        self.__past_dfs[0] = torch.tensor(self.__past_dfs[0])
 
-        self.__past_pop[0] = [self.__counters[-1].get_request_fraction(x) for x in self.__past_pop[0]]
-        self.__past_pop[0] = torch.from_numpy(-np.log(np.matrix(self.__past_pop[0]).T + 10**-15))
+        self.__past_pop[0] = [[np.log(self.__counters[-1].get_request_fraction(x) + 10**-15)] for x in self.__past_pop[0]]
+        self.__past_pop[0] = torch.tensor(self.__past_pop[0])
 
         for i, inp_all in enumerate(self.__past_dfs):
             if inp_all is None:
@@ -161,8 +161,7 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
             weight = self.__cf_coef**i
 
             train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(inp_all, target_all),
-                                                       batch_size=self.__batch_size,
-                                                       shuffle=True)
+                                                       batch_size=self.__batch_size)
 
             for inp, target in train_loader:
                 self.__trained_net.backpropagation_learn(inp, target, self.__learning_rate, False, False, weight)

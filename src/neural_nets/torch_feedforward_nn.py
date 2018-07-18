@@ -47,14 +47,14 @@ class TorchFeedforwardNN(nn.Module):
 
         self.__fc_hidden = []
         for i in range(1, len(neurons_list) - 1):
-            layer = nn.Linear(neurons_list[i - 1], neurons_list[i]).double()
+            layer = nn.Linear(neurons_list[i - 1], neurons_list[i])
 
             self.__fc_hidden.append(layer)
             self.add_module("__fc{0}".format(i), layer)
 
         self.__criterion = nn.MSELoss()
 
-        layer = nn.Linear(neurons_list[-2], neurons_list[-1]).double()
+        layer = nn.Linear(neurons_list[-2], neurons_list[-1])
         self.__fc_output = layer
 
         self.__hidden_activation = hidden_activation
