@@ -120,6 +120,13 @@ class AbstractCache:
 
     # region Public methods
 
+    def __len__(self) -> int:
+        """
+        Get the size of the cache.
+        :return: Size of the cache.
+        """
+        return self.__cache_size
+
     def request_object(self, id_, size, time, metadata: dict=None):
         """
         Method to request an object. Can be already stored in the cache or not.

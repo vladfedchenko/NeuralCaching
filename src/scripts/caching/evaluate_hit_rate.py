@@ -11,18 +11,21 @@ import json
 import torch
 
 
-def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame, cold_start_skip: int) -> float:
+def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame, cold_start_skip: int, log_file: str = None) -> float:
     """
     Evaluate cache hit on some trace.
     :param cache: Cache object.
     :param trace: Object trace.
     :param cold_start_skip: Skip a number of items when evaluating hit rate to avoid cold start.
+    :param log_file: Log file name to write intermediate results.
     :return: Cache hit rate.
     """
     requests = 0
     hits = 0.0
     i = 0
-    metadata = None
+    log = None
+    if log_file is not None:
+        log = open(log_file)
     for _, row in tqdm(trace.iterrows(), desc="Running trace", total=len(trace)):
         if i < cold_start_skip:
             cache.request_object(row.id, 1, row.from_start, {"size": row.file_size})
@@ -32,6 +35,15 @@ def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame, cold_start_skip: i
         requests += 1
         if cache.request_object(row.id, 1, row.from_start, {"size": row.file_size}):
             hits += 1.0
+
+        i += 1
+        if log is not None and requests > 100 and i % 10**6 == 0:
+            log.write("{} {} {}\n".format(len(cache), i, hits / requests))
+            log.flush()
+
+    if log is not None:
+        log.close()
+
     return hits / requests
 
 
@@ -55,6 +67,11 @@ def main():
     parser.add_argument("output",
                         help="output file name",
                         type=str)
+    parser.add_argument("-log",
+                        "--log_file",
+                        help="log file to write intermediate results",
+                        type=str,
+                        default=None)
     parser.add_argument("-cd",
                         "--cache_descriptor",
                         type=str,
