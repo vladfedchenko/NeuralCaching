@@ -149,7 +149,8 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         # self.__past_dfs[0] = np.matrix(self.__past_dfs[0])
         self.__past_dfs[0] = torch.tensor(self.__past_dfs[0])
 
-        self.__past_pop[0] = [[np.log(self.__counters[-1].get_request_fraction(x) + 10**-15)] for x in self.__past_pop[0]]
+        self.__past_pop[0] = [self.__counters[-1].get_request_fraction(x) + 10**-15 for x in self.__past_pop[0]]
+        self.__past_pop[0] = [[-np.log(x)] for x in self.__past_pop[0]]
         self.__past_pop[0] = torch.tensor(self.__past_pop[0])
 
         for i, inp_all in enumerate(self.__past_dfs):
