@@ -24,7 +24,7 @@ def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, 
     hits = 0.0
     log = None
     if log_file is not None:
-        log = open(log_file)
+        log = open(log_file, 'a')
 
     with open(trace_file, 'r') as trace:
         for i, row in tqdm(enumerate(trace), desc="Running trace"):
