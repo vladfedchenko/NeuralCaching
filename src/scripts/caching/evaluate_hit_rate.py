@@ -3,7 +3,6 @@ This script is intended to evaluate cache hit rate throughout different cache si
 """
 import argparse
 from tqdm import tqdm
-import pandas as pd
 import pickle
 from caching import *
 from caching.abstract_cache import AbstractCache
@@ -139,7 +138,7 @@ def main():
                 else:
                     raise Exception("Unidentified error type")
 
-                hit_rate = eval_cache_hit(cache, args.input, args.cold_start_skip)
+                hit_rate = eval_cache_hit(cache, args.input, args.cold_start_skip, args.log_file)
                 f.write(f"{cur_size} {hit_rate}\n")
                 f.flush()
 
