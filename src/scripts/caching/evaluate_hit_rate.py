@@ -11,35 +11,35 @@ import json
 import torch
 
 
-def eval_cache_hit(cache: AbstractCache, trace: pd.DataFrame, cold_start_skip: int, log_file: str = None) -> float:
+def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, log_file: str = None) -> float:
     """
     Evaluate cache hit on some trace.
     :param cache: Cache object.
-    :param trace: Object trace.
+    :param trace_file: File with trace.
     :param cold_start_skip: Skip a number of items when evaluating hit rate to avoid cold start.
     :param log_file: Log file name to write intermediate results.
     :return: Cache hit rate.
     """
     requests = 0
     hits = 0.0
-    i = 0
     log = None
     if log_file is not None:
         log = open(log_file)
-    for _, row in tqdm(trace.iterrows(), desc="Running trace", total=len(trace)):
-        if i < cold_start_skip:
-            cache.request_object(row.id, 1, row.from_start, {"size": row.file_size})
-            i += 1
-            continue
 
-        requests += 1
-        if cache.request_object(row.id, 1, row.from_start, {"size": row.file_size}):
-            hits += 1.0
+    with open(trace_file, 'r') as trace:
+        for i, row in tqdm(trace, desc="Running trace"):
+            row = row.split(', ')
+            if i < cold_start_skip:
+                cache.request_object(int(row[2]), 1, float(row[0]), {"size": int(row[1])})
+                continue
 
-        i += 1
-        if log is not None and requests > 100 and i % 10**6 == 0:
-            log.write("{} {} {}\n".format(len(cache), i, hits / requests))
-            log.flush()
+            requests += 1
+            if cache.request_object(int(row[2]), 1, float(row[0]), {"size": int(row[1])}):
+                hits += 1.0
+
+            if log is not None and requests > 100 and i % 10**6 == 0:
+                log.write("{} {} {}\n".format(len(cache), i, hits / requests))
+                log.flush()
 
     if log is not None:
         log.close()
@@ -94,10 +94,6 @@ def main():
         print("Running on: CPU")
         torch.set_default_tensor_type("torch.FloatTensor")
 
-    input_df = pd.read_csv(args.input, header=None, names=["from_start", "file_size", "id"])
-    # input_df = input_df.iloc[:1_000_000, :]
-    # print(input_df.shape)
-
     with tqdm(total=args.max_cache, desc="Sizes processed") as pbar:
         cur_size = args.starting_cache
         with open(args.output, 'w') as f:
@@ -143,7 +139,7 @@ def main():
                 else:
                     raise Exception("Unidentified error type")
 
-                hit_rate = eval_cache_hit(cache, input_df, args.cold_start_skip)
+                hit_rate = eval_cache_hit(cache, args.input, args.cold_start_skip)
                 f.write(f"{cur_size} {hit_rate}\n")
                 f.flush()
 
