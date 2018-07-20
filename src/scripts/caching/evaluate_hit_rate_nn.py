@@ -5,18 +5,35 @@ import argparse
 from tqdm import tqdm
 import pickle
 from caching import *
-from caching.abstract_cache import AbstractCache
 import json
 import torch
+from typing import List
+import math
 
 
-def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, log_file: str = None) -> float:
+def construct_metadata(row: List[str], args: argparse.Namespace) -> dict:
+    ret = {}
+    if args.size_meta:
+        ret["size"] = int(row[1])
+
+    if args.daytime_meta:
+        ret["daytime"] = (float(row[0]) % 86400.0) / 86400.0 * 2 * math.pi
+
+    return ret
+
+
+def eval_cache_hit(cache: FeedforwardNNCacheFullTorch,
+                   trace_file: str,
+                   cold_start_skip: int,
+                   args: argparse.Namespace = None,
+                   log_file: str = None) -> float:
     """
     Evaluate cache hit on some trace.
     :param cache: Cache object.
     :param trace_file: File with trace.
     :param cold_start_skip: Skip a number of items when evaluating hit rate to avoid cold start.
     :param log_file: Log file name to write intermediate results.
+    :param args: Script arguments list (to construct metadata).
     :return: Cache hit rate.
     """
     requests = 0
@@ -29,11 +46,11 @@ def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, 
         for i, row in tqdm(enumerate(trace), desc="Running trace"):
             row = row.split(',')
             if i < cold_start_skip:
-                cache.request_object(int(row[2]), 1, float(row[0]), {"size": int(row[1])})
+                cache.request_object(int(row[2]), 1, float(row[0]), construct_metadata(row, args))
                 continue
 
             requests += 1
-            if cache.request_object(int(row[2]), 1, float(row[0]), {"size": int(row[1])}):
+            if cache.request_object(int(row[2]), 1, float(row[0]), construct_metadata(row, args)):
                 hits += 1.0
 
             if log is not None and requests > 100 and i % 10**6 == 0:
@@ -60,9 +77,9 @@ def main():
     parser.add_argument("max_cache",
                         type=int,
                         help="max cache size")
-    parser.add_argument("cache_type",
+    parser.add_argument("cache_descriptor",
                         type=str,
-                        help="type of caching policy to use")
+                        help="descriptor to construct cache object")
     parser.add_argument("output",
                         help="output file name",
                         type=str)
@@ -71,15 +88,23 @@ def main():
                         help="log file to write intermediate results",
                         type=str,
                         default=None)
-    parser.add_argument("-cd",
-                        "--cache_descriptor",
-                        type=str,
-                        help="descriptor to construct cache object")
     parser.add_argument("-css",
                         "--cold_start_skip",
                         help="number of requests to skip when evaluating hit rate",
                         type=int,
                         default=0)
+    parser.add_argument("-fc",
+                        "--force_cpu",
+                        help="force cpu execution for PyTorch",
+                        action="store_true")
+    parser.add_argument("-sm",
+                        "--size_meta",
+                        help="add size to metadata for NN",
+                        action="store_true")
+    parser.add_argument("-dm",
+                        "--daytime_meta",
+                        help="add daytime to metadata for NN",
+                        action="store_true")
     args = parser.parse_args()
 
     with tqdm(total=args.max_cache, desc="Sizes processed") as pbar:
@@ -92,29 +117,30 @@ def main():
                     with open(args.cache_descriptor) as f_desc:
                         desc = json.load(f_desc)
 
-                if args.cache_type == "average":
-                    cache = AveragePredictorCache(cur_size,
-                                                  int(desc["counter_num"]),
-                                                  float(desc["time_window"]),
-                                                  int(desc["update_sample_size"]))
+                nn = None
+                if desc["nn_location"] != "":
+                    with open(desc["nn_location"], "rb") as unpickle_file:
+                        nn = pickle.load(unpickle_file)
 
-                elif args.cache_type == "nn":
-                    print("Use separate evaluate_hit_rate_nn.py script!")
-                    return
-
-                elif args.cache_type == "future":
-                    cache = FutureInfoCache(cur_size, desc["mod_trace_path"])
-
-                elif args.cache_type == "lru":
-                    cache = LRUCache(cur_size)
-
-                elif args.cache_type == "arc":
-                    cache = ARCache(cur_size)
-
+                if not args.force_cpu and torch.cuda.is_available():
+                    print("Running on: GPU")
+                    torch.set_default_tensor_type("torch.cuda.FloatTensor")
                 else:
-                    raise Exception("Unidentified cache type")
+                    print("Running on: CPU")
+                    torch.set_default_tensor_type("torch.FloatTensor")
 
-                hit_rate = eval_cache_hit(cache, args.input, args.cold_start_skip, args.log_file)
+                online = (desc["online_learning"] == "True")
+                cache = FeedforwardNNCacheFullTorch(cur_size,
+                                                    nn,
+                                                    int(desc["counter_num"]),
+                                                    float(desc["time_window"]),
+                                                    int(desc["update_sample_size"]),
+                                                    online,
+                                                    float(desc["cf_coef"]),
+                                                    float(desc["learning_rate"]),
+                                                    int(desc["batch_size"]))
+
+                hit_rate = eval_cache_hit(cache, args.input, args.cold_start_skip, args, args.log_file)
                 f.write(f"{cur_size} {hit_rate}\n")
                 f.flush()
 

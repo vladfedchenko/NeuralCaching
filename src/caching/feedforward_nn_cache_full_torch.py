@@ -122,7 +122,11 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
         prediction_row.append(window_time)
 
         if metadata is not None and len(metadata) > 0:
-            prediction_row.append(np.log(metadata["size"] + 10**-15))
+            if "size" in metadata:
+                prediction_row.append(np.log(metadata["size"] + 10**-15))
+
+            if "daytime" in metadata:
+                prediction_row.append(metadata["daytime"])
 
         if self.__trained_net is None:
             self.__trained_net = TorchFeedforwardNN([len(prediction_row), 128, 128, 1], "l_relu", "l_relu")
@@ -171,8 +175,8 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
             self.__past_pop[i + 1] = self.__past_pop[i]
             self.__past_dfs[i + 1] = self.__past_dfs[i]
 
-        self.__past_dfs[0] = None
-        self.__past_pop[0] = None
+        self.__past_dfs[0] = []
+        self.__past_pop[0] = []
 
     def __update_time(self, time: float):
         """
