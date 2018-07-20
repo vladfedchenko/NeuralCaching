@@ -86,13 +86,6 @@ def main():
                         action="store_true")
     args = parser.parse_args()
 
-    if not args.force_cpu and torch.cuda.is_available():
-        print("Running on: GPU")
-        torch.set_default_tensor_type("torch.cuda.FloatTensor")
-    else:
-        print("Running on: CPU")
-        torch.set_default_tensor_type("torch.FloatTensor")
-
     with tqdm(total=args.max_cache, desc="Sizes processed") as pbar:
         cur_size = args.starting_cache
         with open(args.output, 'w') as f:
@@ -114,6 +107,13 @@ def main():
                     if desc["nn_location"] != "":
                         with open(desc["nn_location"], "rb") as unpickle_file:
                             nn = pickle.load(unpickle_file)
+
+                    if not args.force_cpu and torch.cuda.is_available():
+                        print("Running on: GPU")
+                        torch.set_default_tensor_type("torch.cuda.FloatTensor")
+                    else:
+                        print("Running on: CPU")
+                        torch.set_default_tensor_type("torch.FloatTensor")
 
                     online = (desc["online_learning"] == "True")
                     cache = FeedforwardNNCacheFullTorch(cur_size,
