@@ -1,0 +1,5 @@
+{
+  "counter_num" : "10",
+  "time_window" : "50",
+  "update_sample_size" : "5"
+}
