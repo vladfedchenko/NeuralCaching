@@ -35,13 +35,13 @@ class LSTMSoftmax(torch.nn.Module):
         self.__lstm_hidden = []
         self.__lstm_states = []
         for i in range(1, len(neurons_list) - 1):
-            layer = nn.LSTM(neurons_list[i - 1], neurons_list[i], 1)
+            layer = nn.LSTM(neurons_list[i - 1], neurons_list[i], 2)
 
             self.__lstm_hidden.append(layer)
             self.add_module("__lstm{0}".format(i), layer)
 
-            h0 = torch.randn(1, 1, neurons_list[i])
-            c0 = torch.randn(1, 1, neurons_list[i])
+            h0 = torch.randn(2, 1, neurons_list[i])
+            c0 = torch.randn(2, 1, neurons_list[i])
 
             self.__lstm_states.append((h0, c0))
 
