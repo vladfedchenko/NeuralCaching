@@ -120,6 +120,13 @@ class AbstractCache:
 
     # region Public methods
 
+    def cached_objects(self) -> list:
+        """
+        Return list of cached objects.
+        :return: List of cached objects.
+        """
+        return list(self.__saved_objects.keys())
+
     def __len__(self) -> int:
         """
         Get the size of the cache.

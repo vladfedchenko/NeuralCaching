@@ -6,3 +6,4 @@ from .feedforward_nn_cache_torch import FeedforwardNNCacheTorch
 from .feedforward_nn_cache_full_torch import FeedforwardNNCacheFullTorch
 from .future_info_cache import FutureInfoCache
 from .aver_predictor_cache import AveragePredictorCache
+from .dlstm_cache import DLSTMCache

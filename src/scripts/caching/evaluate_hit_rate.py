@@ -80,6 +80,10 @@ def main():
                         help="number of requests to skip when evaluating hit rate",
                         type=int,
                         default=0)
+    parser.add_argument("-fc",
+                        "--force_cpu",
+                        help="force cpu execution for PyTorch",
+                        action="store_true")
     args = parser.parse_args()
 
     with tqdm(total=args.max_cache, desc="Sizes processed") as pbar:
@@ -97,6 +101,25 @@ def main():
                                                   int(desc["counter_num"]),
                                                   float(desc["time_window"]),
                                                   int(desc["update_sample_size"]))
+
+                if args.cache_type == "lstm":
+
+                    if not args.force_cpu and torch.cuda.is_available():
+                        print("Running on: GPU")
+                        torch.set_default_tensor_type("torch.cuda.FloatTensor")
+                    else:
+                        print("Running on: CPU")
+                        torch.set_default_tensor_type("torch.FloatTensor")
+
+                    cache = DLSTMCache(cur_size,
+                                       int(desc["input_len"]),
+                                       int(desc["out_len"]),
+                                       int(desc["lstm_layers"]),
+                                       int(desc["cell_number"]),
+                                       int(desc["training_lag"]),
+                                       float(desc["alpha"]),
+                                       float(desc["learning_rate"]),
+                                       int(desc["max_request_log_size"]))
 
                 elif args.cache_type == "nn":
                     print("Use separate evaluate_hit_rate_nn.py script!")

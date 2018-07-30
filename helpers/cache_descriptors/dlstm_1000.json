@@ -1,0 +1,10 @@
+{
+  "input_len" : "5",
+  "out_len" : "1000",
+  "lstm_layers" : "2",
+  "cell_number" : "16",
+  "training_lag" : "5",
+  "alpha" : "0.125",
+  "learning_rate" : "0.01",
+  "max_request_log_size" : "1025"
+}
