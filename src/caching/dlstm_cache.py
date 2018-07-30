@@ -82,7 +82,8 @@ class DLSTMCache(AbstractCache):
     # region Private methods
 
     def __item_priority(self, index):
-        return 1.0 - (index + 1.0 / self.__out_len)**self.__alpha
+        ret = 1.0 - ((index + 1.0) / self.__out_len)**self.__alpha
+        return ret
 
     def __calc_priority(self, req_sequence):
         priority = [0.0] * self.__out_len
