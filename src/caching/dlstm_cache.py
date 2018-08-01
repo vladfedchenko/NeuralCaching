@@ -67,8 +67,8 @@ class DLSTMCache(AbstractCache):
         self.__input_len = input_len
         self.__out_len = out_len
 
-        # self.__lstm_net = LSTMSoftmax([input_len] + ([cell_number] * lstm_layers) + [out_len])
-        self.__lstm_net = LSTMSoftmax([input_len, cell_number, out_len])
+        self.__lstm_net = LSTMSoftmax([input_len] + ([cell_number] * lstm_layers) + [out_len])
+        # self.__lstm_net = LSTMSoftmax([input_len, cell_number, out_len])
         self.__learning_rate = learning_rate
 
         self.__training_lag = training_lag

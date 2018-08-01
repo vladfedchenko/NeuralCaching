@@ -40,8 +40,8 @@ class LSTMSoftmax(torch.nn.Module):
             self.__lstm_hidden.append(layer)
             self.add_module("__lstm{0}".format(i), layer)
 
-            h0 = torch.randn(2, 1, neurons_list[i])
-            c0 = torch.randn(2, 1, neurons_list[i])
+            h0 = torch.randn(2, 1, neurons_list[i]).detach()
+            c0 = torch.randn(2, 1, neurons_list[i]).detach()
 
             self.__lstm_states.append((h0, c0))
 
@@ -80,7 +80,7 @@ class LSTMSoftmax(torch.nn.Module):
             new_states = []
             for layer, hid_state in zip(self.__lstm_hidden, self.__lstm_states):
                 out, (h1, c1) = layer(out, hid_state)
-                new_states.append((h1, c1))
+                new_states.append((h1.detach(), c1.detach()))
 
             self.__lstm_states = new_states
 
@@ -125,7 +125,7 @@ class LSTMSoftmax(torch.nn.Module):
                 out = self(inp)
 
                 loss = self.__criterion(out, target) * weight
-                loss.backward(retain_graph=True)
+                loss.backward()
                 for f in self.parameters():
                     f.data.sub_(f.grad.data * learn_rate)
         else:
