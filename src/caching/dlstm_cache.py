@@ -146,7 +146,7 @@ class DLSTMCache(AbstractCache):
             self.__train_online()
 
         if self._free_cache < size:
-            inp = torch.Tensor([self.__request_log[-5:]])
+            inp = torch.Tensor([self.__request_log[-self.__input_len:]])
 
             pred = self.__lstm_net(inp)
 
