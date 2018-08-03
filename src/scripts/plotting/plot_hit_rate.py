@@ -2,10 +2,12 @@
 This script is created to plot cache hit rate.
 """
 import argparse
+import matplotlib
 import matplotlib.pyplot as plt
 import os
 from matplotlib.pyplot import cm
 import numpy as np
+matplotlib.use('agg')
 
 
 def main():
