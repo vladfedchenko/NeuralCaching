@@ -1,4 +1,14 @@
 .idea/workspace.xml
 *.pyc
+
+# Jupyter Notebook
 .ipynb_checkpoints
 *-checkpoint.ipynb
+
+#LaTex
+*.aux
+*.log
+*.bbl
+*.blg
+*.gz
+*.txss
