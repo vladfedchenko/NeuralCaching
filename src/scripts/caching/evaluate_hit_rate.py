@@ -119,7 +119,8 @@ def main():
                                        int(desc["training_lag"]),
                                        float(desc["alpha"]),
                                        float(desc["learning_rate"]),
-                                       int(desc["max_request_log_size"]))
+                                       int(desc["true_pred_seq_len"]),
+                                       int(desc["training_inters"]))
 
                 elif args.cache_type == "nn":
                     print("Use separate evaluate_hit_rate_nn.py script!")

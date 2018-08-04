@@ -47,7 +47,8 @@ class DLSTMCache(AbstractCache):
                  training_lag: int = 5,
                  alpha: float = 0.125,
                  learning_rate: float = 0.01,
-                 max_request_log_size: int = 10000):
+                 true_pred_seq_len: int = 10000,
+                 training_inters: int = 1):
         """
         Create new DLSTMCache object. Described in "Content Caching with Deep Long Short-Term
         Memory Network" by Haitian Pang, Jiangchuan Liu,Fellow, IEEE, Shizhi Tang, Ruixiao Zhang,
@@ -60,7 +61,8 @@ class DLSTMCache(AbstractCache):
         :param training_lag: Number of cache misses before training is initialized.
         :param alpha: Parameter to determine true caching priority for training.
         :param learning_rate: Learning rate for training.
-        :param max_request_log_size: How many last requests to store for training.
+        :param true_pred_seq_len: How many requests to use to determine true caching priority.
+        :param training_inters: Training iterations number.
         """
         super().__init__(size)
 
@@ -75,7 +77,7 @@ class DLSTMCache(AbstractCache):
         self.__alpha = alpha
 
         self.__request_log = []
-        self.__max_request_log_size = max_request_log_size
+        self.__max_request_log_size = input_len + true_pred_seq_len + training_inters - 1
 
     # endregion
 

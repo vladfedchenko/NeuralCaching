@@ -1,11 +1,11 @@
 {
-  "input_len" : "10",
-  "out_len" : "1000",
+  "input_len" : "5",
+  "out_len" : "300000",
   "lstm_layers" : "2",
   "cell_number" : "16",
   "training_lag" : "5",
   "alpha" : "0.125",
   "learning_rate" : "0.1",
   "true_pred_seq_len" : "1000",
-  "training_inters" : "10"
+  "training_inters" : "1"
 }
