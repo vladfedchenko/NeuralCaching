@@ -44,4 +44,11 @@ $$ f(x) =
 	\end{cases}
 $$
 
+\subsection{Performance evaluation}
+
+Continuing with neural networks, we need to determine a way to evaluate the state of neural networks, i. e. to check that network has finished training, to verify that the predictions made by the network are close to desirable. To deal with the first issue, we can observe the behavior of the value of the loss function through iterations. If the value of the loss function is decreasing with each iteration, then the neural network still hasn't finished training. Otherwise, if the loss is stable through iterations, the training is completed. The second issue can also be addressed by observing the value of the loss function. The loss should converge to a small value. But also we can directly check the predictions made by the neural network and visually evaluate the quality of predictions.
+
+Finally, to verify that the neural network is good at generalizing the underlying dependency between the input and the output and not just learned to map input-output pairs, what is called overfitting\cite{15}, we split the dataset into training and validation sets. If the loss on the training data is low but high on the validation data, it means that the neural network is overfitted and some actions are required to overcome this issue.
+
+\subsection{Experiments results}
 
