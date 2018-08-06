@@ -6,7 +6,7 @@
 \begin{figure}[b!]
 	\centering
 	\includegraphics[totalheight=7cm]{pics/nn_1.png}
-	\caption{Fully connected feedforward network}
+	\caption{Fully connected feedforward network.}
 	\label{fig:nn1}
 \end{figure}
 
@@ -52,3 +52,18 @@ Finally, to verify that the neural network is good at generalizing the underlyin
 
 \subsection{Experiments results}
 
+\begin{figure}[b!]
+	\centering
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/case1_op.png}
+		\caption{Synthetic trace. Case 1.}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/case2_op.png}
+		\caption{Synthetic trace. Case 2.}
+	\end{subfigure}
+	\caption{Neural network prediction quality evaluation.}
+	\label{fig:nn2}
+\end{figure}
+
+After generating the synthetic traces with $ 10000 $ unique items in both cases, $ 0.8 $ Zipf's distribution parameter, $ 20 $ epochs mean time between requests, and $ 10^7 $ total requests, we evaluated the performance of the proposed architecture of the neural network. After the generation of the traces was finished, we generated training datasets with a size of the window $ 10^7 $. After splitting the dataset into training and validation sets both training and validation loss values converged to small numbers which meant that the training is over. On the Figure \ref{fig:nn2} you can see what prediction neural networks learned to make in both cases of the synthetic traces. Top plots show how the actual position of the popularity of the items compares to the predicted position. Bottom plots show how the actual predicted popularity values compare to real popularity values. Blue dots, which represent predicted values, closely follow red dots, which are real popularity values. From this, we can conclude that this architecture of the neural network is suitable for object popularity prediction. Next, we are going to introduce a caching policy which relies on a neural network when making a caching decision.
