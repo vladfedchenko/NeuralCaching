@@ -26,6 +26,9 @@ class DLSTMCache(AbstractCache):
     __request_log = None
     __max_request_log_size = 0
 
+    __unique_places = 0
+    __id_map = None
+
     # endregion
 
     # region Protected variables
@@ -79,6 +82,9 @@ class DLSTMCache(AbstractCache):
         self.__request_log = []
         self.__max_request_log_size = input_len + true_pred_seq_len + training_inters - 1
 
+        self.__unique_places = out_len
+        self.__id_map = {}
+
     # endregion
 
     # region Private methods
@@ -90,7 +96,7 @@ class DLSTMCache(AbstractCache):
     def __calc_priority(self, req_sequence):
         priority = [0.0] * self.__out_len
         for i, item in enumerate(req_sequence):
-            priority[item] += self.__item_priority(i)
+            priority[self.__id_map[item]] += self.__item_priority(i)
 
         priority = np.exp(priority)
         priority /= np.sum(priority, axis=0)
@@ -126,10 +132,10 @@ class DLSTMCache(AbstractCache):
         cached = self.cached_objects()
         for c in cached:
             if pred[0, c] < min_pred:
-                min_pred = pred[0, c]
+                min_pred = pred[0, self.__id_map[c]]
                 min_index = c
 
-        if pred[0, id_] > min_pred:
+        if pred[0, self.__id_map[id_]] > min_pred:
             self._remove_object(min_index)
             self._store_object(id_, size)
 
@@ -143,6 +149,14 @@ class DLSTMCache(AbstractCache):
     def _process_cache_miss(self, id_, size, time, metadata):
         self.__log_request(id_)
         self.__cur_lag += 1
+
+        if id_ not in self.__id_map:
+            self.__unique_places -= 1
+            self.__id_map[id_] = self.__unique_places
+
+            if self.__unique_places == -1:
+                raise Exception("Too many unique objects to handle. Consider increasing the output size.")
+
         if self.__cur_lag == self.__training_lag:
             self.__cur_lag = 0
             self.__train_online()

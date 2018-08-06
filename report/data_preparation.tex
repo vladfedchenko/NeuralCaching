@@ -10,6 +10,13 @@ While relying on previously described facts, we will be able to create synthetic
 
 \subsection{Real-world data}
 
+\begin{figure}[b!]
+	\centering
+	\includegraphics[totalheight=6cm]{pics/real_item_pop.png}
+	\caption{Trace item popularity}
+	\label{fig:pop_1}
+\end{figure}
+
 The real world data has been obtained from Akamai content delivery network\cite{12}. The detailed information about the dataset you can find in the Table \ref{table:1} below.
 
 \begin{table}[h!]
@@ -29,4 +36,6 @@ The real world data has been obtained from Akamai content delivery network\cite{
 	\label{table:1}
 \end{table}
 
-As you can see in the Table \ref{table:1}, request trace contains not only the ID and the time of request arrival but also the size of the object. For now, we will consider that the size of all of the objects is equal and caching one object consumes one discreet place in the cache. The size of the object may later prove itself useful as a metadata feature for the neural network to process. This request trace is going to be used to evaluate the performance of the proposed algorithm and to compare it with other reviewed approaches. 
+As you can see in the Table \ref{table:1}, request trace contains not only the ID and the time of request arrival but also the size of the object. For now, we will consider that the size of all of the objects is equal and caching one object consumes one discreet place in the cache. The size of the object may later prove itself useful as a metadata feature for the neural network to process. This request trace is going to be used to evaluate the performance of the proposed algorithm and to compare it with other reviewed approaches.
+
+Figure \ref{fig:pop_1} shows the distribution of popularity of objects in the trace. Majority of the objects are requested only once (notice the logarithmic scale of the y axis of the figure). Pure LRU policy is always putting such objects in the cache potentially removing a more popular object from the cache. Such behavior leads to a reduced cache hit ratio and should be avoided by the proposed caching policy.
