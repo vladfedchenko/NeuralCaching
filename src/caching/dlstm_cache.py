@@ -131,7 +131,7 @@ class DLSTMCache(AbstractCache):
 
         cached = self.cached_objects()
         for c in cached:
-            if pred[0, c] < min_pred:
+            if pred[0, self.__id_map[c]] < min_pred:
                 min_pred = pred[0, self.__id_map[c]]
                 min_index = c
 
