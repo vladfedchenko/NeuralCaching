@@ -37,10 +37,13 @@ def main():
     colors = cm.rainbow(np.linspace(0, 1, len(txts)))
 
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
-    fig.suptitle("Hit rate evaluation")
+    #fig.suptitle("Hit rate evaluation")
+
+    markers = ['^', '*', 'X', '1', '.', 'o', '<', 'v', '2', 's', ',', 'p', 'P' '8', 'h', 'H', '+', '3', 'x', '>',
+               'D', 'd', '|', '4', '_']
 
     plotted = []
-    for file_name, col in zip(txts, colors):
+    for i, (file_name, col) in enumerate(zip(txts, colors)):
         with open(file_name, "r") as f:
             lines = f.readlines()
             line_name = lines[0]
@@ -51,7 +54,7 @@ def main():
             cache_sizes = [int(x[0]) for x in lines]
             cache_hits = [float(x[1]) for x in lines]
 
-            pl_line, = plt.plot(cache_sizes, cache_hits, c=col, label=line_name)
+            pl_line, = plt.plot(cache_sizes, cache_hits, c=col, label=line_name, marker=markers[i])
             plotted.append(pl_line)
 
     plt.xlabel("Cache size")
@@ -59,6 +62,7 @@ def main():
 
     plt.legend(handles=plotted)
 
+    plt.tight_layout()
     plot_name = os.path.join(args.directory, "cache_hit_plot.png")
     plt.savefig(plot_name)
 

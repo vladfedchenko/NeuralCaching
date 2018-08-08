@@ -1,0 +1,46 @@
+\section{Neural network based caching policy}
+
+\subsection{Architecture}
+
+\begin{figure}[b!]
+	\centering
+	\includegraphics[width=\linewidth]{pics/cache1.png}
+	\caption{Neural network architecture for caching policy.}
+	\label{fig:cache1}
+\end{figure}
+
+Following the success in the application of a neural network for object popularity predictions, we are proposing a neural network based caching policy. On the Figure \ref{fig:cache1} you can see the proposed usage of the neural network by the policy.
+
+\begin{itemize}
+	\item $X_{-3}$ through $X_{-1}$ are popularities of the object in the previous 3 time frames;
+	\item $X_0$ is the popularity of the object in the current time frame;
+	\item $t$ is the fraction of the current time window that has already passed;
+	\item $X_1$ is the popularity of the object in the future;
+\end{itemize}
+
+As you can see, the architecture of the neural network is slightly different from the one described in the previous section.  The difference is caused by the nature of the application of caching policies. The policy is working in the real-time thus we cannot operate in the framework of only previous and next time frames. $X_0$ represents the popularity in the current time frame. But at the beginning of the time frame, the quality of the value $X_0$ may be low since there will not be enough requests in the time window to estimate the popularity with reasonable accuracy. To help with this issue, we decided to add the parameter $t$. Using this parameter, the neural network will be able to learn to judge the quality of the parameter $X_0$ and make better predictions. Further, we will also experiment with different number of prediction windows and trying to add other metadata to improve the accuracy of predictions.
+
+\begin{figure}[t!]
+	\centering
+	\includegraphics[width=0.75\linewidth]{pics/cache2.png}
+	\caption{Usage of prediction by the policy.}
+	\label{fig:cache2}
+\end{figure}
+
+After the prediction is made, the value $X_1$ is used to decide if the object should be put in the cache. The policy maintains a priority queue in which the key of each entry is the predicted popularity, and the values are IDs of the objects currently stored in the cache. When a new object is requested, and it has not been stored in the cache, the neural network predicts the popularity of the object in the future - $X_1$. Then, an object with the smallest predicted popularity is fetched from the priority queue, and its popularity is denoted as $X_old$. If the value $X_1$ is greater than $X_old$, then the old object is removed from the cache, and the new one is put in its place and into the priority queue. Otherwise, no change occurs. 
+
+With this design, a problem may arise - if the prediction of popularity for some object has been calculated to be very high, it may never be removed from the cache since it will never be fetched for replacement. A solution to this problem is to update the priority for a few random objects stored in the cache with each cache hit.
+
+\begin{figure}[t!]
+	\centering
+	\includegraphics[width=0.5\linewidth]{pics/cache3.png}
+	\caption{Poor performance of the first version.}
+	\label{fig:cache3}
+\end{figure}
+
+Also, the value $X_1$ requires a better explanation. Trying to predict the popularity of the object in the next time frame, as in the previous offline case, did not show good performance when evaluating the hit rate, as seen on the Figure \ref{fig:cache3}. The identified problem was that the prediction was made too far in the future. The influence of the issue can be summarized in two cases:
+
+\begin{enumerate}
+	\item If the object is popular in the current time window but then gets unpopular in the next, it wouldn't be put into the cache, but since the current time window is not finished, and the object is still popular, a lot of cache misses will occur.
+	\item The opposite problem - when the object is not popular but then gets popular. This object will take a place in the cache even though it is not popular yet.
+\end{enumerate}
