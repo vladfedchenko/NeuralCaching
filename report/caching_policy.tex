@@ -44,3 +44,18 @@ Also, the value $X_1$ requires a better explanation. Trying to predict the popul
 	\item If the object is popular in the current time window but then gets unpopular in the next, it wouldn't be put into the cache, but since the current time window is not finished, and the object is still popular, a lot of cache misses will occur.
 	\item The opposite problem - when the object is not popular but then gets popular. This object will take a place in the cache even though it is not popular yet.
 \end{enumerate}
+
+To resolve this issue, we changed the scope of the value $X_1$. The desirable performance has been achieved with when $X_1$ represents the popularity at the end of the current time frame and displayed on the Figure \ref{fig:cache4}. Probably it is still possible to improve the performance by fine tuning the parameters. 
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.5\linewidth]{pics/cache4.png}
+	\caption{Improved performance of the policy.}
+	\label{fig:cache4}
+\end{figure}
+
+\subsection{Online learning}
+
+One of the most important parts of a caching policy is to be able to perform well in different environments with different traffic patterns. That is why it is important to make the policy adaptable. In our case, such adaptability is provided by the ability of the neural network to continuously evolve by training on the newly arrived data. After the end of each time frame, it is possible to generate a new training dataset and use it to train the neural network, possibly asynchronously. But by training only on the latest data, we may encounter the problem of catastrophic forgetting\cite{16, 17}. In short, the issue is that by training only on the latest data the neural network will forget the information about the old underlying relations between input and output even though they still may be relevant for predictions. 
+
+To overcome this issue, we incorporate a technique of keeping the training datasets of previous time frames and training the neural network also on them. But since they represent less relevant data, the error, which is backpropagated during the training of the neural network, is scaled down with a parameter $\alpha^M \text{, where } 0 < \alpha < 1 \text{ and } M$ - is the distance from current time frame to previous time frames. In this way, the error on the latest data will stay unchanged since the value of $M$ is $0$. Moving further in the past $\alpha^M \rightarrow 0$ and the influence of the old data is reduced. When $\alpha^M$ reaches some small value, the old training data becomes too irrelevant and can be removed from the memory. Using this approach with the value of $\alpha = 0.5$ and forget threshold of $0.001$ it is required to store training datasets generated only for $10$ latest time frames while keeping the predictions made by the neural network accurate and relevant.
