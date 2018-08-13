@@ -84,19 +84,20 @@ class DLSTMCache(AbstractCache):
 
         self.__unique_places = out_len
         self.__id_map = {}
+        self.__true_pred_seq_len = true_pred_seq_len
 
     # endregion
 
     # region Private methods
 
     def __item_priority(self, index):
-        ret = 1.0 - ((index + 1.0) / self.__out_len)**self.__alpha
+        ret = 1.0 - ((index - 1.0) / self.__true_pred_seq_len)**self.__alpha
         return ret
 
     def __calc_priority(self, req_sequence):
         priority = [0.0] * self.__out_len
         for i, item in enumerate(req_sequence):
-            priority[self.__id_map[item]] += self.__item_priority(i)
+            priority[self.__id_map[item]] += self.__item_priority(i + 1)
 
         priority = np.exp(priority)
         priority /= np.sum(priority, axis=0)

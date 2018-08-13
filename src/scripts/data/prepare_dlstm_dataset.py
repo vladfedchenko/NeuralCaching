@@ -6,15 +6,15 @@ from tqdm import tqdm
 import numpy as np
 
 
-def item_priority(index, out_len, alpha):
-    ret = 1.0 - ((index + 1.0) / out_len) ** alpha
+def item_priority(index, true_pred_seq_len, alpha):
+    ret = 1.0 - ((index - 1.0) / true_pred_seq_len) ** alpha
     return ret
 
 
-def calc_priority(req_sequence, out_len, id_map, alpha):
+def calc_priority(req_sequence, out_len, true_pred_seq_len, id_map, alpha):
     priority = [0.0] * out_len
     for i, item in enumerate(req_sequence):
-        priority[id_map[item]] += item_priority(i, out_len, alpha)
+        priority[id_map[item]] += item_priority(i + 1, true_pred_seq_len, alpha)
 
     priority = np.exp(priority)
     priority /= np.sum(priority, axis=0)
@@ -48,7 +48,7 @@ def main():
 
     unique_ids = args.output_size
     id_map = {}
-
+    # id_map = {i: i-1 for i in range(1, 101)}
     request_log = []
 
     with open(args.input, 'r') as trace:
@@ -72,7 +72,11 @@ def main():
                     request_log = request_log[1:]
 
                 inp = request_log[:args.input_size]
-                priority = calc_priority(request_log[args.input_size:], args.output_size, id_map, args.alpha)
+                priority = list(calc_priority(request_log[args.input_size:],
+                                              args.output_size,
+                                              args.true_pred_seq_len,
+                                              id_map,
+                                              args.alpha))
 
                 inp += priority
 
