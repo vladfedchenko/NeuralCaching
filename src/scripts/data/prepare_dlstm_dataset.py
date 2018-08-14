@@ -44,6 +44,11 @@ def main():
                         type=float,
                         help="alpha for determining real caching priority",
                         default=0.125)
+    parser.add_argument("-r",
+                        "--requests",
+                        type=int,
+                        help="how many requests to process into dataset. If not passed - whole trace is processed",
+                        default=None)
     args = parser.parse_args()
 
     unique_ids = args.output_size
@@ -54,6 +59,10 @@ def main():
     with open(args.input, 'r') as trace:
         with open(args.output, "w") as out_file:
             for i, row in tqdm(enumerate(trace), desc="Running trace"):
+
+                if args.requests is not None and i == args.requests:
+                    break
+
                 row = row.split(',')
                 id_ = int(row[2])
 
