@@ -36,6 +36,11 @@ def main():
                         type=int,
                         help="number of samples to use from dataset. If not passed - whole dataset is used",
                         default=None)
+    parser.add_argument("-es",
+                        "--eval_sample",
+                        type=int,
+                        help="number of samples to use from for evaluation",
+                        default=None)
     parser.add_argument("-mb",
                         "--mini_batch",
                         type=int,
@@ -112,8 +117,6 @@ def main():
     inp_valid = np.matrix(valid_data.iloc[:, :inputs_num]).astype(float)
     outp_valid = np.matrix(valid_data.iloc[:, inputs_num:])
 
-    #torch.set_default_dtype(torch.float64)
-
     inp_train = torch.from_numpy(inp_train).type(torch.FloatTensor)
     outp_train = torch.from_numpy(outp_train).type(torch.FloatTensor)
     inp_valid = torch.from_numpy(inp_valid).type(torch.FloatTensor)
@@ -138,8 +141,25 @@ def main():
 
                 if log_counter == 0:
                     log_counter = args.mini_batch_log
-                    train_err = nn.evaluate(inp_train, outp_train)
-                    valid_err = nn.evaluate(inp_valid, outp_valid)
+                    if args.eval_sample is None:
+                        train_err = nn.evaluate(inp_train, outp_train)
+                        valid_err = nn.evaluate(inp_valid, outp_valid)
+                    else:
+                        train_tmp = train_data.sample(n=args.eval_sample)
+                        valid_tmp = valid_data.sample(n=args.eval_sample)
+
+                        inp_train_tmp = np.matrix(train_tmp.iloc[:, :inputs_num]).astype(float)
+                        outp_train_tmp = np.matrix(train_tmp.iloc[:, inputs_num:])
+                        inp_valid_tmp = np.matrix(valid_tmp.iloc[:, :inputs_num]).astype(float)
+                        outp_valid_tmp = np.matrix(valid_tmp.iloc[:, inputs_num:])
+
+                        inp_train_tmp = torch.from_numpy(inp_train_tmp).type(torch.FloatTensor)
+                        outp_train_tmp = torch.from_numpy(outp_train_tmp).type(torch.FloatTensor)
+                        inp_valid_tmp = torch.from_numpy(inp_valid_tmp).type(torch.FloatTensor)
+                        outp_valid_tmp = torch.from_numpy(outp_valid_tmp).type(torch.FloatTensor)
+
+                        train_err = nn.evaluate(inp_train_tmp, outp_train_tmp)
+                        valid_err = nn.evaluate(inp_valid_tmp, outp_valid_tmp)
 
                     f.write("{} {}\n".format(train_err, valid_err))
                     f.flush()
