@@ -137,4 +137,24 @@ class LSTMSoftmax(torch.nn.Module):
             for f in self.parameters():
                 f.data.sub_(f.grad.data * learn_rate)
 
+    def evaluate(self,
+                 inputs: torch.Tensor,
+                 outputs: torch.Tensor) -> float:
+        """
+        Evaluate the NN by calculating error using provided error function.
+        :param inputs: Matrix of inputs.
+        :param outputs: Matrix of outputs.
+        :return: Error using provided on creation error function.
+        """
+        n = inputs.shape[0]
+        calc_outp = self(inputs).detach()
+
+        self.zero_grad()
+        loss = self.__criterion(outputs, calc_outp)
+        if loss.device.type.startswith("cuda"):
+            loss = loss.cpu()
+        loss_np = loss.numpy()
+
+        return float(loss_np)
+
     # endregion
