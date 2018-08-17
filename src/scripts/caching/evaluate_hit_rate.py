@@ -150,7 +150,7 @@ def main():
                 hit_rate = eval_cache_hit(cache,
                                           args.input,
                                           args.cold_start_skip,
-                                          args.log_file + "_{}.log".format(cur_size))
+                                          args.log_file_prefix + "_{}.log".format(cur_size))
 
                 f.write(f"{cur_size} {hit_rate}\n")
                 f.flush()
