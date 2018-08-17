@@ -47,7 +47,7 @@ def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, 
                 log.flush()
 
                 instant_hits = 0.0
-                instant_requests = 1
+                instant_requests = 0
 
     if log is not None:
         log.close()

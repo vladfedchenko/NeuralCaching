@@ -60,7 +60,7 @@ def eval_cache_hit(cache: FeedforwardNNCacheFullTorch, trace_file: str, cold_sta
                 log.flush()
 
                 instant_hits = 0.0
-                instant_requests = 1
+                instant_requests = 0
 
     if log is not None:
         log.close()
