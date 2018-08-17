@@ -23,7 +23,7 @@ with tqdm.tqdm(total=total_write) as prog_bar:
 
             for line in fh:
                 arr = line.split()
-                f.write("{}, {}, {}\n".format(arr[0], 1, arr[1]))
+                f.write("{}, {}, {}\n".format(arr[0].decode("utf-8"), 1, arr[1].decode("utf-8")))
                 prog_bar.update(1)
                 i += 1
                 if i == total_write:
