@@ -1,7 +1,7 @@
 {
   "counter_num" : "4",
   "nn_location" : "",
-  "time_window" : "1",
+  "time_window" : "3",
   "update_sample_size" : "5",
   "online_learning" : "True",
   "cf_coef" : "0.5",
