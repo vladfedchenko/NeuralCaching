@@ -22,7 +22,8 @@ def construct_metadata(row: List[str], args: argparse.Namespace) -> dict:
     return ret
 
 
-def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, log_file: str = None) -> float:
+def eval_cache_hit(cache: FeedforwardNNCacheFullTorch, trace_file: str, cold_start_skip: int, log_file: str = None) \
+        -> float:
     """
     Evaluate cache hit on some trace.
     :param cache: Cache object.
