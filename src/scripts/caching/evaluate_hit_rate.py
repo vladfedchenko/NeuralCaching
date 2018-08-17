@@ -21,9 +21,13 @@ def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, 
     """
     requests = 0
     hits = 0.0
+
+    instant_hits = 0.0
+    instant_requests = 0
+
     log = None
     if log_file is not None:
-        log = open(log_file, 'a')
+        log = open(log_file, 'w')
 
     with open(trace_file, 'r') as trace:
         for i, row in tqdm(enumerate(trace), desc="Running trace"):
@@ -33,12 +37,17 @@ def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, 
                 continue
 
             requests += 1
+            instant_requests += 1
             if cache.request_object(int(row[2]), 1, float(row[0]), {"size": int(row[1])}):
                 hits += 1.0
+                instant_hits += 1.0
 
             if log is not None and requests > 100 and i % 10**6 == 0:
-                log.write("{} {} {}\n".format(len(cache), i, hits / requests))
+                log.write("{} {} {} {}\n".format(len(cache), i, hits / requests, instant_hits / instant_requests))
                 log.flush()
+
+                instant_hits = 0.0
+                instant_requests = 1
 
     if log is not None:
         log.close()
@@ -67,8 +76,8 @@ def main():
                         help="output file name",
                         type=str)
     parser.add_argument("-log",
-                        "--log_file",
-                        help="log file to write intermediate results",
+                        "--log_file_prefix",
+                        help="log files prefix to write intermediate results",
                         type=str,
                         default=None)
     parser.add_argument("-cd",
@@ -138,7 +147,11 @@ def main():
                 else:
                     raise Exception("Unidentified cache type")
 
-                hit_rate = eval_cache_hit(cache, args.input, args.cold_start_skip, args.log_file)
+                hit_rate = eval_cache_hit(cache,
+                                          args.input,
+                                          args.cold_start_skip,
+                                          args.log_file + "_{}.log".format(cur_size))
+
                 f.write(f"{cur_size} {hit_rate}\n")
                 f.flush()
 
