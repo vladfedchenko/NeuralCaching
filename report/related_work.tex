@@ -12,3 +12,12 @@ The final batch of the articles is the closest by nature to our approach. The fi
 
 Article \cite{24} is a continuation of work done in \cite{23} with an attempt to extend the application of the policy to multi-node cooperative caching. This may also be a good continuation of development of our approach but it is not explored in this article.
 
+
+The most similar approach in comparison to our we found in "Popularity-Driven Content Caching" by Suoheng Li, Jie Xu, Mihaela van der Schaar and Weiping Li\cite{25}. The similarities include:
+\begin{itemize}
+	\item Caching decisions are based on the prediction of the popularity of the objects estimated by some criteria.
+	\item Maintenance of priority queue to decide which items to remove from the cache. The priority key is the predicted popularity.
+\end{itemize}
+Nevertheless, there are some key differences. First of all, the authors of \cite{25} apply a technique of "Adaptive Context Space Partitioning" to determine the popularity of the content while we apply a neural network for this task. Second of all, the mechanism of the update of the priority queue is different. Our approach is based on the update of the priority of random individual objects in the queue at every cache hit and the approach proposed in \cite{25} updates the whole queue after each K requests.
+
+Overall, no substantial work has been done in the application of machine learning techniques for caching. The reviewed approaches claim to overperform established policies, but, as stated previously, have some disadvantages. Our proposed policy will bring some light to the research on the topic.
