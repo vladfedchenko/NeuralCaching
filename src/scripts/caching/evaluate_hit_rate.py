@@ -33,12 +33,12 @@ def eval_cache_hit(cache: AbstractCache, trace_file: str, cold_start_skip: int, 
         for i, row in tqdm(enumerate(trace), desc="Running trace"):
             row = row.split(',')
             if i < cold_start_skip:
-                cache.request_object(int(row[2]), 1, float(row[0]), {"size": int(row[1])})
+                cache.request_object(row[2], 1, float(row[0]), {"size": int(row[1])})
                 continue
 
             requests += 1
             instant_requests += 1
-            if cache.request_object(int(row[2]), 1, float(row[0]), {"size": int(row[1])}):
+            if cache.request_object(row[2], 1, float(row[0]), {"size": int(row[1])}):
                 hits += 1.0
                 instant_hits += 1.0
 
