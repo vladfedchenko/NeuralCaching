@@ -6,7 +6,7 @@ i = 1
 with open(input_df, "r") as inp:
     with open(output_df, "w") as outp:
         for line in inp:
-            arr = line.split()
+            arr = line.split(",")
             if arr[2] not in id_map:
                 id_map[arr[2]] = i
                 i += 1
