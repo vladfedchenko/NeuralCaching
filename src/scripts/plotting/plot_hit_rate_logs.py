@@ -59,6 +59,7 @@ def main():
     plt.ylabel("Hit ratio")
 
     plt.legend(handles=plotted)
+    plt.grid(True)
 
     plot_name = os.path.join(args.directory, "cache_hit_plot.png")
     plt.plot()
