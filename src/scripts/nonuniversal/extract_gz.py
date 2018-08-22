@@ -10,15 +10,17 @@ dirname = "data/log_share"
 fl = list(natsorted(os.listdir(dirname)))
 
 total_write = 100_000_000
-i = 0
+
 # with tqdm.tqdm(total=total_write) as prog_bar:
 #     with open("data/real_trace_2.csv", "w") as f:
 
 min_size = 10**10
 max_size = 0
 
+size_sum = 0
 all_size = []
 
+i = 0
 for fn in tqdm(fl):
     if not fn.endswith(".gz"):
         continue
@@ -38,8 +40,14 @@ for fn in tqdm(fl):
         if max_size < size:
             max_size = size
 
-        all_size.append(size)
+        size_sum += size
+        i += 1
+        if i == 1_000_000:
+            i = 0
+            size_sum /= 1_000_000
+            all_size.append(size_sum)
 
+            size_sum = 0
     #     f.write("{}, {}, {}\n".format(arr[0].decode("utf-8"), arr[1].decode("utf-8"), arr[2].decode("utf-8")))
     #     prog_bar.update(1)
     #     i += 1
