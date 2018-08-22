@@ -2,32 +2,53 @@ import os
 import subprocess
 import io
 from natsort import natsorted
-import tqdm
+from tqdm import tqdm
+import numpy as np
 
 dirname = "data/log_share"
 
-fl = natsorted(os.listdir(dirname))
+fl = list(natsorted(os.listdir(dirname)))
 
 total_write = 100_000_000
 i = 0
-with tqdm.tqdm(total=total_write) as prog_bar:
-    with open("data/real_trace_2.csv", "w") as f:
-        for fn in fl:
-            if not fn.endswith(".gz"):
-                continue
-            fullfn = os.path.join(dirname, fn)
+# with tqdm.tqdm(total=total_write) as prog_bar:
+#     with open("data/real_trace_2.csv", "w") as f:
 
-            p = subprocess.Popen(["zcat", fullfn], stdout=subprocess.PIPE)
-            fh = io.BytesIO(p.communicate()[0])
-            assert p.returncode == 0
+min_size = 10**10
+max_size = 0
 
-            for line in fh:
-                arr = line.split()
-                f.write("{}, {}, {}\n".format(arr[0].decode("utf-8"), arr[1].decode("utf-8"), arr[2].decode("utf-8")))
-                prog_bar.update(1)
-                i += 1
-                if i == total_write:
-                    break
+all_size = []
 
-            if i == total_write:
-                break
+for fn in tqdm(fl):
+    if not fn.endswith(".gz"):
+        continue
+    fullfn = os.path.join(dirname, fn)
+
+    p = subprocess.Popen(["zcat", fullfn], stdout=subprocess.PIPE)
+    fh = io.BytesIO(p.communicate()[0])
+    assert p.returncode == 0
+
+    for line in fh:
+        arr = line.split()
+        size = int(arr[1].decode("utf-8"))
+
+        if min_size > size:
+            min_size = size
+
+        if max_size < size:
+            max_size = size
+
+        all_size.append(size)
+
+    #     f.write("{}, {}, {}\n".format(arr[0].decode("utf-8"), arr[1].decode("utf-8"), arr[2].decode("utf-8")))
+    #     prog_bar.update(1)
+    #     i += 1
+    #     if i == total_write:
+    #         break
+    #
+    # if i == total_write:
+    #     break
+
+mean = np.mean(all_size)
+
+print("Min: {}, Max: {}, Mean: {}".format(min_size, max_size, mean))
