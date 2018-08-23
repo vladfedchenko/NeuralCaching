@@ -120,3 +120,40 @@ We are not claiming that the proposed rule is the best way to select the size of
 
 \subsection{Perspective improvements}
 
+\begin{figure}[b!]
+	\centering
+	
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/cache7.png}
+		\caption{5-day trace.}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/cache7_2.png}
+		\caption{30-day trace.}
+	\end{subfigure}
+	\caption{Comparison of immediate cache hit ratio for different time frame sizes.}
+	\label{fig:cache7}
+\end{figure}
+
+Examining the cumulative hit rate revealed that the time frame size of 200 seconds performed the best. But studying closely the immediate hit rate, i. e. evaluating the hit rate after each million of requests rather than the total hit rate, revealed some interesting behavior. Figure \ref{fig:cache7} shows the ratio between the best-performing policy modification and other modifications evaluating immediate hit rate as described before for both of the real traces and cache size of 200. The figure reveals that the best-performing cumulatively time frame size does not perform the best at each point in time of the traces. At some segments of the traces, the 50 second size performs the best, what could be expected since this size was very close to the best-performing in all tests, but at some segments the size of 10 seconds performed the best. Examining the segments of the traces on which the size of 10 seconds performed the best revealed that the rate of requests was very high which allowed the 10 second modification to estimate the popularity of the objects with high accuracy while being the fastest to adapt to the changes since it naturally follows from the smaller size of the time frame. Such behavior suggests that possibly it is better to reject the concept of time-based time frames and switch to request count-based time frames, i. e. the time frame will not span a fixed amount of time but a fixed number of requests. Such an approach should remove the dependence on the request rate of the request trace and could allow simplifying the parameter selection for the policy. But in the report, we will not touch such a modification and leave it for the future research.
+
+Our attempts to improve the quality of predictions made by the neural network by passing as input some metadata alongside with the popularity in previous time frames, in our case, it was the size of the object and artificially extracted time of the day, did not improve the performance of the policy. But the approach of adding metadata to the input of the neural network should not be discarded. It is possible that some other metadata could improve the quality of predictions and the performance of the caching policy as the consequence but search for such metadata is left for the future research.
+
+\subsection{Comparison with other proposed solutions}
+
+We have shown before that our proposed caching policy overperformes well established and frequently used policy LRU and industry leader policy ARC by close to 12\% and 3\% in the cache hit ratio respectfully. But, as mentioned before, there are some proposed policies which also rely on machine learning algorithms for caching purposes. We have selected the approach proposed in \cite{23} to compare with the method proposed by us. As explained before, the policy proposed in \cite{23} applies deep long short-term memory network to determine the caching priority and decide which objects to store/remove in/from the cache. We have implemented the policy using the PyTorch library, which was also used to implement the neural network in our approach. DLSTM approach deals with a fixed number of items, so we filtered the 5-day trace to contain only $300 000$ most popular objects. After selecting the parameters of the policy as proposed by the author of \cite{23}, we evaluated the hit rate on our filtered trace. The produced hit rate values were less than 1\%. We reduced the number of unique items to 1000 and repeated the experiment, now with a better result shown in the Figure \ref{fig:dlstm}. The policy is showing some promise as can be seen by the upward trend in the cumulative cache hit ratio but the slow speed of adaptation at the first half of the trace caused a lower final cache hit ratio than achieved by ARC or our approach. Adding the disadvantage of a limited number of unique items to the slow adaptation speed of DLSTM policy we can claim that our approach is superior to the one proposed in \cite{23}.
+
+\begin{figure}[t!]
+	\centering
+	
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/todo.png}
+		\caption{5-day trace.}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/todo.png}
+		\caption{30-day trace.}
+	\end{subfigure}
+	\caption{DLSTM performance comparison.}
+	\label{fig:dlstm}
+\end{figure}
