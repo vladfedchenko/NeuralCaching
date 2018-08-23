@@ -11,5 +11,6 @@ with open("data/real_2_item_pop.csv", "r") as f:
     plt.hist(lines, bins=100)
 
     plt.xlabel("Number of requests", fontsize=14)
+    plt.yscale("log")
 
     plt.savefig("item_popularity_real_2.png")
