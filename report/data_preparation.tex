@@ -25,8 +25,6 @@ While relying on previously described facts, we will be able to create synthetic
 	\label{fig:pop_1}
 \end{figure}
 
-The real world data has been obtained from Akamai content delivery network\cite{12}. We were able to get access to two request traces collected from two different vantage points of the Akamai network. The first one spans over 5 days and further will be referred to as the 5-day trace. By analogy, the second one spans over 30 days and will be referred to as the 30-day trace. The detailed information about the traces you can find in the Table \ref{table:1} below.
-
 \begin{table}[h!]
 	\centering
 	\begin{tabular}{| c | c | c |}
@@ -45,6 +43,10 @@ The real world data has been obtained from Akamai content delivery network\cite{
 	\caption{Akamai request traces information.}
 	\label{table:1}
 \end{table}
+
+The real world data has been obtained from Akamai content delivery network\cite{12}. We were able to get access to two request traces collected from two different vantage points of the Akamai network. The first one spans over 5 days and further will be referred to as the 5-day trace. By analogy, the second one spans over 30 days and will be referred to as the 30-day trace. The detailed information about the traces you can find in the Table \ref{table:1} below.
+
+
 
 As you can see in the Table \ref{table:1}, request traces contain not only the ID and the time of request arrival but also the size of the object. For now, we will consider that the size of all of the objects is equal and caching one object consumes one discreet place in the cache. The size of the object may later prove itself useful as a metadata feature for the neural network to process. This request traces are going to be used to evaluate the performance of the proposed algorithm and to compare it with other reviewed approaches.
 

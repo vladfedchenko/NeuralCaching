@@ -54,7 +54,7 @@ To resolve this issue, we changed the scope of the value $X_1$. The desirable pe
 		\caption{5-day trace.}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.49\linewidth}
-		\includegraphics[width=\linewidth]{pics/todo.png}
+		\includegraphics[width=\linewidth]{pics/cache4_2.png}
 		\caption{30-day trace.}
 	\end{subfigure}
 	\caption{Improved performance of the policy.}
@@ -71,7 +71,7 @@ To overcome this issue, we incorporate a technique of keeping the training datas
 
 Having achieved good performance on the real 5-day trace and overperforming state of the art policy ARC on all cache sizes, as seen in the Figure \ref{fig:cache4}, even without giving much consideration to the parameters of the proposed policy, it is time to explore the optimal ways to select the parameters.
 
-\begin{figure}[b!]
+\begin{figure}[t!]
 	\centering
 	
 	\begin{subfigure}[b]{0.49\linewidth}
@@ -79,7 +79,7 @@ Having achieved good performance on the real 5-day trace and overperforming stat
 		\caption{5-day trace.}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.49\linewidth}
-		\includegraphics[width=\linewidth]{pics/todo.png}
+		\includegraphics[width=\linewidth]{pics/cache5_2.png}
 		\caption{30-day trace.}
 	\end{subfigure}
 	\caption{Comparison of performance with larger number of time frames.}
@@ -101,15 +101,22 @@ Following this, we have to determine the optimal way to select the length of the
 	\centering
 	
 	\begin{subfigure}[b]{0.49\linewidth}
-		\includegraphics[width=\linewidth]{pics/todo.png}
+		\includegraphics[width=\linewidth]{pics/cache6.png}
 		\caption{5-day trace.}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.49\linewidth}
-		\includegraphics[width=\linewidth]{pics/todo.png}
+		\includegraphics[width=\linewidth]{pics/cache6_2.png}
 		\caption{30-day trace.}
 	\end{subfigure}
 	\caption{Comparison of performance with different size of time frame.}
 	\label{fig:cache6}
 \end{figure}
 
-The experiment showed that the size of the window influences more on the performance than the number of windows. For both traces, the size of 200 s showed the best performance for all cache sizes, as you can observe on the Figure \ref{fig:cache6}. From this, we can propose a rule of thumb for selecting the size of the time frame for the policy. It is reasonable to assume that the lower the request rate the higher the size of the time frame should be, since with fixed length of the time frame and decreasing request rate the accuracy of the estimation of the popularity of the objects also decreases. Both traces have approximately 900 requests/s request rate and show the best performance at the size of the window of 200 s. Thus, the rule of thumb is to select the size of the window such that the next equation holds true: $$ frame\_size * request\_rate \approx  180000 $$.
+The experiment showed that the size of the window influences more on the performance than the number of windows. For both traces, the size of 200 s showed the best performance for all cache sizes with the exception of cache size 200 on the 30-day trace, as you can observe on the Figure \ref{fig:cache6}. The figure shows the ratio between the hit ratio of the best performing time frame size and all of the others. From this, we can propose a rule of thumb for selecting the size of the time frame for the policy. It is reasonable to assume that the lower the request rate the higher the size of the time frame should be, since with fixed length of the time frame and decreasing request rate the accuracy of the estimation of the popularity of the objects also decreases. Both traces have approximately 900 requests/s request rate and show the best performance at the size of the window of 200 s. Thus, the rule of thumb is to select the size of the window such that the next equation holds true: $$ frame\_size * request\_rate \approx  180000 $$.
+
+Another point to notice can be observed of the Figure \ref{fig:cache6} (b). As the cache size increases, the 50 second time frame policy is on the downward trend while 1000 second time frame is on the upward trend.  From this, we can conclude that the available size of the cache also should be accounted for when selecting the time frame size.
+
+We are not claiming that the proposed rule is the best way to select the size of the time frame since in all cases the performance of the 50 second frame size was very close to the best performing size of 200 seconds, even overperforming it in one case but following the provided rule of thumb should give close to optimal results.
+
+\subsection{Perspective improvements}
+

@@ -44,7 +44,25 @@ def main():
 
     fig = plt.figure(1, figsize=(args.size_x, args.size_y))
     plotted = []
-    for file_name, col in zip(txts, colors):
+
+    tmp_map = {}
+    for i, (file_name, col) in enumerate(zip(txts, colors)):
+        with open(file_name, "r") as f:
+            lines = f.readlines()
+            lines = lines[1:]
+
+            lines = [x.split() for x in lines]
+
+            cache_sizes = [int(x[1]) for x in lines]
+            cache_hits = [float(x[2]) for x in lines]
+
+            for s, h in zip(cache_sizes, cache_hits):
+                if i == 0:
+                    tmp_map[s] = h
+                elif tmp_map[s] < h:
+                    tmp_map[s] = h
+
+    for i, (file_name, col) in enumerate(zip(txts, colors)):
         with open(file_name, "r") as f:
             lines = f.readlines()
             line_name = lines[0]
@@ -55,11 +73,13 @@ def main():
             cache_sizes = [int(x[1]) for x in lines]
             cache_hits = [float(x[2]) for x in lines]
 
-            pl_line, = plt.plot(cache_sizes, cache_hits, c=col, label=line_name)
+            cache_hits = [x[1] / tmp_map[x[0]] for x in zip(cache_sizes, cache_hits)]
+
+            pl_line, = plt.plot(cache_sizes, cache_hits, c=col, label=line_name, marker=markers[i])
             plotted.append(pl_line)
 
     plt.xlabel("Requests processed")
-    plt.ylabel("Hit ratio")
+    plt.ylabel("Hit ratio compared to best")
 
     plt.legend(handles=plotted)
     plt.tight_layout()
@@ -73,7 +93,24 @@ def main():
 
     fig = plt.figure(2, figsize=(args.size_x, args.size_y))
     plotted = []
-    for file_name, col in zip(txts, colors):
+    tmp_map = {}
+    for i, (file_name, col) in enumerate(zip(txts, colors)):
+        with open(file_name, "r") as f:
+            lines = f.readlines()
+            lines = lines[1:]
+
+            lines = [x.split() for x in lines]
+
+            cache_sizes = [int(x[1]) for x in lines]
+            cache_hits = [float(x[3]) for x in lines]
+
+            for s, h in zip(cache_sizes, cache_hits):
+                if i == 0:
+                    tmp_map[s] = h
+                elif tmp_map[s] < h:
+                    tmp_map[s] = h
+
+    for i, (file_name, col) in enumerate(zip(txts, colors)):
         with open(file_name, "r") as f:
             lines = f.readlines()
             line_name = lines[0]
@@ -84,11 +121,13 @@ def main():
             cache_sizes = [int(x[1]) for x in lines]
             cache_hits = [float(x[3]) for x in lines]
 
-            pl_line, = plt.plot(cache_sizes, cache_hits, c=col, label=line_name)
+            cache_hits = [x[1] / tmp_map[x[0]] for x in zip(cache_sizes, cache_hits)]
+
+            pl_line, = plt.plot(cache_sizes, cache_hits, c=col, label=line_name, marker=markers[i])
             plotted.append(pl_line)
 
     plt.xlabel("Requests processed")
-    plt.ylabel("Hit ratio")
+    plt.ylabel("Hit ratio compared to best")
 
     plt.legend(handles=plotted)
     plt.tight_layout()
