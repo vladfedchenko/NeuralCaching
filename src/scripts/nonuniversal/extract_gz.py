@@ -9,18 +9,7 @@ dirname = "data/log_share"
 
 fl = list(natsorted(os.listdir(dirname)))
 
-total_write = 100_000_000
-
-# with tqdm.tqdm(total=total_write) as prog_bar:
-#     with open("data/real_trace_2.csv", "w") as f:
-
-min_size = 10**10
-max_size = 0
-
-size_sum = 0
-all_size = []
-
-i = 0
+req_map = {}
 for fn in tqdm(fl):
     if not fn.endswith(".gz"):
         continue
@@ -31,32 +20,16 @@ for fn in tqdm(fl):
     assert p.returncode == 0
 
     for line in fh:
-        arr = line.split()
-        size = int(arr[1].decode("utf-8"))
+        row = line.split()
+        id_ = row[2].decode("utf-8")
+        if id_ in req_map:
+            req_map[id_] += 1
+        else:
+            req_map[id_] = 1
 
-        if min_size > size:
-            min_size = size
+L = list(req_map.items())
 
-        if max_size < size:
-            max_size = size
+with open("data/real_2_item_pop.csv", 'w') as pop_file:
+    for id_, pop in L:
+        pop_file.write("{},{}\n".format(id_, pop))
 
-        size_sum += size
-        i += 1
-        if i == 1_000_000:
-            i = 0
-            size_sum /= 1_000_000
-            all_size.append(size_sum)
-
-            size_sum = 0
-    #     f.write("{}, {}, {}\n".format(arr[0].decode("utf-8"), arr[1].decode("utf-8"), arr[2].decode("utf-8")))
-    #     prog_bar.update(1)
-    #     i += 1
-    #     if i == total_write:
-    #         break
-    #
-    # if i == total_write:
-    #     break
-
-mean = np.mean(all_size)
-
-print("Min: {}, Max: {}, Mean: {}".format(min_size, max_size, mean))

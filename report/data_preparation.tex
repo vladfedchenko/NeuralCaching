@@ -12,7 +12,15 @@ While relying on previously described facts, we will be able to create synthetic
 
 \begin{figure}[b!]
 	\centering
-	\includegraphics[totalheight=6cm]{pics/real_item_pop.png}
+	
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/real_item_pop.png}
+		\caption{5 day trace.}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/todo.png}
+		\caption{30 day trace.}
+	\end{subfigure}
 	\caption{Trace item popularity.}
 	\label{fig:pop_1}
 \end{figure}
@@ -29,9 +37,9 @@ The real world data has been obtained from Akamai content delivery network\cite{
 		Time span & 5 days & 30 days \\
 		Unique items & $ 13.27 * 10^6 $ & $ 113.15 * 10^6 $ \\
 		Request rate & 966.97 requests/s & 856.48 requests/s \\
-		Min object size & 3400 bytes & \\
-		Max object size & 1.15 gigabytes & \\ 
-		Mean object size & $ 4.85 * 10^5 $ bytes & \\
+		Min object size & 3400 bytes & 1 bytes \\
+		Max object size & 1.15 gigabytes & 10.73 gigabytes \\ 
+		Mean object size & $ 4.85 * 10^5 $ bytes & $ 3.63 * 10^5 $ bytes \\
 		\hline
 	\end{tabular}
 	\caption{Akamai request traces information.}

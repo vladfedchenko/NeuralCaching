@@ -27,7 +27,7 @@ As you can see, the architecture of the neural network is slightly different fro
 	\label{fig:cache2}
 \end{figure}
 
-After the prediction is made, the value $X_1$ is used to decide if the object should be put in the cache. The policy maintains a priority queue in which the key of each entry is the predicted popularity, and the values are IDs of the objects currently stored in the cache. When a new object is requested, and it has not been stored in the cache, the neural network predicts the popularity of the object in the future - $X_1$. Then, an object with the smallest predicted popularity is fetched from the priority queue, and its popularity is denoted as $X_old$. If the value $X_1$ is greater than $X_old$, then the old object is removed from the cache, and the new one is put in its place and into the priority queue. Otherwise, no change occurs. 
+After the prediction is made, the value $X_1$ is used to decide if the object should be put in the cache. The policy maintains a priority queue in which the key of each entry is the predicted popularity, and the values are IDs of the objects currently stored in the cache. When a new object is requested, and it has not been stored in the cache, the neural network predicts the popularity of the object in the future - $X_1$. Then, an object with the smallest predicted popularity is fetched from the priority queue, and its popularity is denoted as $X_{old}$. If the value $X_1$ is greater than $X_{old}$, then the old object is removed from the cache, and the new one is put in its place and into the priority queue. Otherwise, no change occurs. 
 
 With this design, a problem may arise - if the prediction of popularity for some object has been calculated to be very high, it may never be removed from the cache since it will never be fetched for replacement. A solution to this problem is to update the priority for a few random objects stored in the cache with each cache hit.
 
@@ -49,7 +49,14 @@ To resolve this issue, we changed the scope of the value $X_1$. The desirable pe
 
 \begin{figure}[h!]
 	\centering
-	\includegraphics[width=0.5\linewidth]{pics/cache4.png}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/cache4.png}
+		\caption{5-day trace.}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/todo.png}
+		\caption{30-day trace.}
+	\end{subfigure}
 	\caption{Improved performance of the policy.}
 	\label{fig:cache4}
 \end{figure}
@@ -62,24 +69,25 @@ To overcome this issue, we incorporate a technique of keeping the training datas
 
 \subsection{Parameter selection}
 
+Having achieved good performance on the real 5-day trace and overperforming state of the art policy ARC on all cache sizes, as seen in the Figure \ref{fig:cache4}, even without giving much consideration to the parameters of the proposed policy, it is time to explore the optimal ways to select the parameters.
+
 \begin{figure}[b!]
 	\centering
 	
 	\begin{subfigure}[b]{0.49\linewidth}
 		\includegraphics[width=\linewidth]{pics/cache5.png}
-		\caption{5 day trace.}
+		\caption{5-day trace.}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.49\linewidth}
 		\includegraphics[width=\linewidth]{pics/todo.png}
-		\caption{30 day trace.}
+		\caption{30-day trace.}
 	\end{subfigure}
 	\caption{Comparison of performance with larger number of time frames.}
 	\label{fig:cache5}
 \end{figure}
 
-Having achieved good performance on the real trace and overperforming state of the art policy ARC on all cache sizes, as seen in the Figure \ref{fig:cache4}, even without giving much consideration to the parameters of the proposed policy, it is time to explore the optimal ways to select the parameters.
-
 The first step we decided to check is the required number of time windows. To establish this experiment, we have fixed the length of the time frame at the values of 200 seconds and tested two configurations - 4 time frames (3 previous + current) and 10 time frames (9 previous + current). The results of the experiment can be seen in the Figure \ref{fig:cache5}. As seen in the figure, the cache hit ratio values coincide for each tested cache size. From this, we can conclude that it is enough to use 4 time frames for popularity predictions and there is no point in increasing this number.
+
 
 Following this, we have to determine the optimal way to select the length of the time frame. We have established an experiment trying to evaluate this value. Parameters of the experiment:
 
@@ -94,14 +102,14 @@ Following this, we have to determine the optimal way to select the length of the
 	
 	\begin{subfigure}[b]{0.49\linewidth}
 		\includegraphics[width=\linewidth]{pics/todo.png}
-		\caption{5 day trace.}
+		\caption{5-day trace.}
 	\end{subfigure}
 	\begin{subfigure}[b]{0.49\linewidth}
 		\includegraphics[width=\linewidth]{pics/todo.png}
-		\caption{30 day trace.}
+		\caption{30-day trace.}
 	\end{subfigure}
 	\caption{Comparison of performance with different size of time frame.}
 	\label{fig:cache6}
 \end{figure}
 
-The experiment showed that the size of the window influences more on the performance than the number of windows. For both traces, the size of 200 s showed the best performance for all cache sizes, as you can observe on the Figure \ref{fig:cache6}.
+The experiment showed that the size of the window influences more on the performance than the number of windows. For both traces, the size of 200 s showed the best performance for all cache sizes, as you can observe on the Figure \ref{fig:cache6}. From this, we can propose a rule of thumb for selecting the size of the time frame for the policy. It is reasonable to assume that the lower the request rate the higher the size of the time frame should be, since with fixed length of the time frame and decreasing request rate the accuracy of the estimation of the popularity of the objects also decreases. Both traces have approximately 900 requests/s request rate and show the best performance at the size of the window of 200 s. Thus, the rule of thumb is to select the size of the window such that the next equation holds true: $$ frame\_size * request\_rate \approx  180000 $$.
