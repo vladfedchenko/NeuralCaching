@@ -1,6 +1,6 @@
-\section{Neural network based caching policy}
+\section{Neural network based caching policy} \label{caching_policy}
 
-\subsection{Architecture}
+\subsection{Architecture} \label{architecture}
 
 \begin{figure}[b!]
 	\centering
@@ -61,13 +61,13 @@ To resolve this issue, we changed the scope of the value $X_1$. The desirable pe
 	\label{fig:cache4}
 \end{figure}
 
-\subsection{Online learning}
+\subsection{Online learning} \label{online_learning}
 
 One of the most important parts of a caching policy is to be able to perform well in different environments with different traffic patterns. That is why it is important to make the policy adaptable. In our case, such adaptability is provided by the ability of the neural network to continuously evolve by training on the newly arrived data. After the end of each time frame, it is possible to generate a new training dataset and use it to train the neural network, possibly asynchronously. But by training only on the latest data, we may encounter the problem of catastrophic forgetting\cite{16, 17}. In short, the issue is that by training only on the latest data the neural network will forget the information about the old underlying relations between input and output even though they still may be relevant for predictions. 
 
 To overcome this issue, we incorporate a technique of keeping the training datasets of previous time frames and training the neural network also on them. But since they represent less relevant data, the error, which is backpropagated during the training of the neural network, is scaled down with a parameter $\alpha^M \text{, where } 0 < \alpha < 1 \text{ and } M$ - is the distance from current time frame to previous time frames. In this way, the error on the latest data will stay unchanged since the value of $M$ is $0$. Moving further in the past $\alpha^M \rightarrow 0$ and the influence of the old data is reduced. When $\alpha^M$ reaches some small value, the old training data becomes too irrelevant and can be removed from the memory. Using this approach with the value of $\alpha = 0.5$ and forget threshold of $0.001$ it is required to store training datasets generated only for $10$ latest time frames while keeping the predictions made by the neural network accurate and relevant.
 
-\subsection{Parameter selection}
+\subsection{Parameter selection} \label{parameter_selection}
 
 Having achieved good performance on the real 5-day trace and overperforming state of the art policy ARC on all cache sizes, as seen in the Figure \ref{fig:cache4}, even without giving much consideration to the parameters of the proposed policy, it is time to explore the optimal ways to select the parameters.
 
@@ -118,7 +118,7 @@ Another point to notice can be observed of the Figure \ref{fig:cache6} (b). As t
 
 We are not claiming that the proposed rule is the best way to select the size of the time frame since in all cases the performance of the 50 second frame size was very close to the best performing size of 200 seconds, even overperforming it in one case but following the provided rule of thumb should give close to optimal results.
 
-\subsection{Perspective improvements}
+\subsection{Perspective improvements} \label{perspective_improvements}
 
 \begin{figure}[b!]
 	\centering
@@ -139,7 +139,7 @@ Examining the cumulative hit rate revealed that the time frame size of 200 secon
 
 Our attempts to improve the quality of predictions made by the neural network by passing as input some metadata alongside with the popularity in previous time frames, in our case, it was the size of the object and artificially extracted time of the day, did not improve the performance of the policy. But the approach of adding metadata to the input of the neural network should not be discarded. It is possible that some other metadata could improve the quality of predictions and the performance of the caching policy as the consequence but search for such metadata is left for the future research.
 
-\subsection{Comparison with other proposed solutions}
+\subsection{Comparison with other proposed solutions} \label{comparison}
 
 We have shown before that our proposed caching policy overperformes well established and frequently used policy LRU and industry leader policy ARC by close to 12\% and 3\% in the cache hit ratio respectfully. But, as mentioned before, there are some proposed policies which also rely on machine learning algorithms for caching purposes. We have selected the approach proposed in \cite{23} to compare with the method proposed by us. As explained before, the policy proposed in \cite{23} applies deep long short-term memory network to determine the caching priority and decide which objects to store/remove in/from the cache. We have implemented the policy using the PyTorch library, which was also used to implement the neural network in our approach. DLSTM approach deals with a fixed number of items, so we filtered the 5-day trace to contain only $300 000$ most popular objects. After selecting the parameters of the policy as proposed by the author of \cite{23}, we evaluated the hit rate on our filtered trace. The produced hit rate values were less than 1\%. We reduced the number of unique items to 1000 and repeated the experiment, now with a better result shown in the Figure \ref{fig:dlstm}. The policy is showing some promise as can be seen by the upward trend in the cumulative cache hit ratio but the slow speed of adaptation at the first half of the trace caused a lower final cache hit ratio than achieved by ARC or our approach. Adding the disadvantage of a limited number of unique items to the slow adaptation speed of DLSTM policy we can claim that our approach is superior to the one proposed in \cite{23}.
 

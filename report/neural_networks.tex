@@ -1,7 +1,6 @@
-\section{Neural networks}
+\section{Neural networks} \label{neural_network}
 
-
-\subsection{Fully connected feedforward networks}
+\subsection{Fully connected feedforward networks} \label{feedforward_nn}
 
 \begin{figure}[b!]
 	\centering
@@ -31,7 +30,7 @@ Neural networks "learn" to make correct prediction through a process called erro
 $$ f(x) = \frac{\sum_{i=1}^{N} (y_{true} - y_{pred})^2}{N} $$
 \normalsize
 
-\subsection{Chosen architecture}
+\subsection{Chosen architecture} \label{chosen_architecture}
 
 We propose an idea of predicting the popularity of objects in the future based on, mainly, the popularity in the past. To prepare a learning dataset, it is possible to split the request trace in time frames (or time windows) and calculate the popularity of each item in each time frame. Let’s denote this popularity as $ X_{i,j} $. Each row would consist of $ K + 1 $ popularities values, K values are input, and 1 is the output. To keep popularity independent of the number of requests in the time frame, the popularity is represented as the fraction of requests. Keeping popularity values in the "raw", unchanged state led to poor performance of the neural network since the large difference in popularity, which measured in a few orders of magnitude, caused the neural network to learn to make good predictions for the most popular objects sacrificing the accuracy of predictions of popularity for less popular objects. To fix this issue, we decided to apply a transformation for both input and output popularity values. All of the values are transformed by the next formula: $ f(p) = -log(p + const) $. This transformation reduces the difference between the smallest and the largest values processed by the neural network and proved to improve the accuracy of predictions greatly.
 
@@ -44,13 +43,13 @@ $$ f(x) =
 	\end{cases}
 $$
 
-\subsection{Performance evaluation}
+\subsection{Performance evaluation} \label{performance_eval}
 
 Continuing with neural networks, we need to determine a way to evaluate the state of neural networks, i. e. to check that network has finished training, to verify that the predictions made by the network are close to desirable. To deal with the first issue, we can observe the behavior of the value of the loss function through iterations. If the value of the loss function is decreasing with each iteration, then the neural network still hasn't finished training. Otherwise, if the loss is stable through iterations, the training is completed. The second issue can also be addressed by observing the value of the loss function. The loss should converge to a small value. But also we can directly check the predictions made by the neural network and visually evaluate the quality of predictions.
 
 Finally, to verify that the neural network is good at generalizing the underlying dependency between the input and the output and not just learned to map input-output pairs, what is called overfitting\cite{15}, we split the dataset into training and validation sets. If the loss on the training data is low but high on the validation data, it means that the neural network is overfitted and some actions are required to overcome this issue.
 
-\subsection{Experiments results}
+\subsection{Experiments results} \label{experiments_results}
 
 \begin{figure}[b!]
 	\centering
