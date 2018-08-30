@@ -11,11 +11,11 @@ Belady's min algorithm is proven to minimize the number of cache misses which is
 
 First In First Out (FIFO) is one of the first proposed caching policies. Simple to implement and deploy but eventually has been replaced by more sophisticated algorithms with better performance in terms of hit rate. The unbeaten advantage of FIFO is a low computational complexity of $ O(1) $.
 
-Least Recently Used (LRU) is the natural evolution of FIFO and the most commonly used caching replacement policy. It offers comparably good performance and does not require a lot of extra storage or CPU time. The policy requires maintenance of a priority queue what leads, in general, to a time complexity of $ O(log\,C) $ where $C$ is the size of the cache.
+Least Recently Used (LRU) is the natural evolution of FIFO and the most commonly used caching replacement policy. It offers comparably good performance and does not require a lot of extra storage or CPU time. The policy requires maintenance of a priority queue what leads, in general, to a time complexity of $ O(\log\,C) $ where $C$ is the size of the cache.
 
 Least Frequently Used (LFU) in some cases overperforms LRU, it is optimal in long-term if the objects have static popularity in particular. But requires to track the number of requests for all of the objects observed. This disadvantage limits the number of applications of LFU.
 
-Adaptive Replacement Cache (ARC) \cite{3} is a caching policy introduced by IBM \cite{4} in 2004. It offers better performance than LRU while keeping low computational resources requirements. Roughly, the algorithm requires maintenance of 2 priority queues with some additional constant time operations. Thus, the time complexity is also $ O(log\,C) $ but the constant is larger. It is considered to be state of the art.
+Adaptive Replacement Cache (ARC) \cite{3} is a caching policy introduced by IBM \cite{4} in 2004. It offers better performance than LRU while keeping low computational resources requirements. Roughly, the algorithm requires maintenance of 2 priority queues with some additional constant time operations. Thus, the time complexity is also $ O(\log\,C) $ but the constant is larger. It is considered to be state of the art.
 
 While a large number of caching policies has been introduced, there is still room for improvement in comparison to the optimal algorithm. Moreover, since, as said before, the amount of web traffic is expected to rise, even a small improvement in caching policy performance could lead to significant cost savings in long-term.
 
