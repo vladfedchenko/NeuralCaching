@@ -4,7 +4,7 @@ Caching is intended to help with file retrieval from a distant server. A sequenc
 
 \subsection{Synthetic data} \label{synthetic_data}
 
-The primary challenge in the task of creation of the synthetic traces is to create them in such a way that they represent close to real-world data. We define the popularity of the object as the number of times an  object is requested divided by overall number of requests. A number of studies have been conducted to show that the popularity of files requested from web servers is distributed by Zipf's law\cite{10}. At the same time, the requests arrival times can be modeled as a Poisson process\cite{11}. These two facts will form the basis of synthetic trace generation.
+The primary challenge in the task of creation of the synthetic traces is to create them in such a way that they represent close to real-world data. We define the popularity of the object as the number of times an  object is requested divided by overall number of requests. A number of studies have been conducted to show that the popularity of files requested from web servers is distributed according to a Zipf's law \cite{10}. At the same time, the requests arrival times can be modeled as a Poisson process \cite{11}. These two facts will form the basis of synthetic trace generation.
 
 At the same time, in the real world objects popularity is not constant over time since new contents appear all the time and old contents become less popular. That is why we have decided to prepare two different types of synthetic traces. The first exhibits static popularity. The second type exhibits nonstatic popularity. In this case, the content catalogue is splitted in two equal-sized parts. The first half of the catalogue has static Zipf distributed popularity. The popularity of the second half of the population is also distributed by Zipf's law but the popularity is randomly shuffled every predefined time frame $ t_0 $.
 
@@ -29,11 +29,7 @@ At the same time, in the real world objects popularity is not constant over time
 	\label{table:1}
 \end{table}
 
-The real world data has been obtained from Akamai content delivery network\cite{12}. In particular. we were able to get access to two request traces collected from two different vantage points of the Akamai network. The first one spans over 5 days and further will be referred to as the 5-day trace. The second one spans over 30 days and will be referred to as the 30-day trace. The detailed information about the traces can be found in the Table \ref{table:1} above.
-
-As you can see in the Table \ref{table:1}, request traces contain not only the ID and the time of request arrival but also the size of the object. For now, we will consider that the size of all of the objects is equal and caching one object consumes one discrete place in the cache. The size of the object may later prove itself useful as a metadata feature for the neural network to process. This request traces are going to be used to evaluate the performance of the proposed algorithm and to compare it with other reviewed approaches.
-
-\begin{figure}[h!]
+\begin{figure}[b!]
 	\centering
 	
 	\begin{subfigure}[b]{0.49\linewidth}
@@ -47,6 +43,12 @@ As you can see in the Table \ref{table:1}, request traces contain not only the I
 	\caption{Trace item popularity.}
 	\label{fig:pop_1}
 \end{figure}
+
+The real world data has been obtained from Akamai content delivery network \cite{12}. In particular, we were able to get access to two request traces collected from two different vantage points of the Akamai network. The first one spans over 5 days and further will be referred to as the 5-day trace. The second one spans over 30 days and will be referred to as the 30-day trace. The detailed information about the traces can be found in the Table \ref{table:1} above.
+
+As you can see in the Table \ref{table:1}, request traces contain not only the ID and the time of request arrival but also the size of the object. For now, we will consider that the size of all of the objects is equal and caching one object consumes one discrete place in the cache. The size of the object may later prove itself useful as a metadata feature for the neural network to process. This request traces are going to be used to evaluate the performance of the proposed algorithm and to compare it with other reviewed approaches.
+
+
 
 Figure \ref{fig:pop_1} shows the distribution of popularity of objects in the traces. A large number of the objects are requested only once (notice the logarithmic scale of the y axis of the figure). Pure LRU policy is always putting such objects in the cache potentially removing a more popular object from the cache. Such behavior leads to a reduced cache hit ratio and should be avoided by the proposed caching policy.
 

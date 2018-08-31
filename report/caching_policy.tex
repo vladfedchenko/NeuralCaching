@@ -9,7 +9,7 @@
 	\label{fig:cache2}
 \end{figure}
 
-After we have established the suitable neural network architecture for predicting content popularity, it is time to present a caching policy which is utilizing such network. After each object request, it is possible to construct an input to the neural network, i.e. values $X_{-3}, \, ... \, , X_{0}$ and $t$, and obtain the predicted popularity $X_{1}$. After the prediction is made, the value $X_1$ is used to decide if the object should be put in the cache. The policy maintains a priority queue in which the key of each entry is the predicted popularity, and the values are IDs of the objects currently stored in the cache. When a new object is requested, and it has not been stored in the cache, the neural network predicts the popularity of the object in the future - $X_1$. Then, an object with the smallest predicted popularity is fetched from the priority queue, and its popularity is denoted as $X_{old}$. If the value $X_1$ is greater than $X_{old}$, then the old object is removed from the cache, and the new one is put in its place and into the priority queue. Otherwise, no change occurs.
+After we have established the suitable neural network architecture for predicting content popularity, it is time to present a caching policy which uses such network. After each object request, it is possible to construct an input to the neural network, i.e. values $X_{-3}, \, ... \, , X_{0}$ and $t$, and obtain the predicted popularity $X_{1}$. After the prediction is made, the value $X_1$ is used to decide if the object should be put in the cache. The policy maintains a priority queue in which the key of each entry is the predicted popularity, and the values are IDs of the objects currently stored in the cache. When a new object is requested, and it has not been stored in the cache, the neural network predicts the popularity of the object in the future - $X_1$. Then, an object with the smallest predicted popularity is fetched from the priority queue, and its popularity is denoted as $X_{old}$. If the value $X_1$ is greater than $X_{old}$, then the old object is removed from the cache, and the new one is put in its place and into the priority queue. Otherwise, no change occurs.
 
 With this design, a problem may arise - if the prediction of popularity for some object has been calculated to be very high, it may never be removed from the cache since it will never be fetched for replacement. A solution to this problem is to update the priority for a few random objects stored in the cache at each cache hit.
 
@@ -25,7 +25,7 @@ To overcome this issue, we incorporate a technique of keeping the training datas
 	\centering
 	\captionsetup{justification=centering}
 	\includegraphics[width=0.5\linewidth]{pics/cache3.png}
-	\caption{Hit rate evaluation on real-world data for different cache sizes.}
+	\caption{Hit rate evaluation on real-world data for different cache sizes when estimates for popularity in the next slot are used.}
 	\label{fig:cache3}
 \end{figure}
 
@@ -33,10 +33,10 @@ In the Section \ref{architecture} we were referring to the output of the neural 
 
 \begin{enumerate}
 	\item If the object is popular in the current time window but then gets unpopular in the next, it would not be put into the cache, assuming the neural network correctly predicted low popularity in the next time frame. But since the current time window is not finished, and the object is still popular, a lot of cache misses will occur.
-	\item Conversely, when the object is not popular but then gets popular. This object will take place in the cache even though it is not popular yet.
+	\item Conversely, when the object is not popular but then gets popular, this object will take space in the cache even though it is not popular yet.
 \end{enumerate}
 
-To resolve this issue, we changed the scope of the value $X_1$. The desirable performance has been achieved when $X_1$ represents the popularity in the current time frame but evaluated when the time frame is finished. We would like to emphasize that the value $X_0$, which is passed as part of the input of the neural network, is not the same as $X_1$ since $X_0$ is the immediate evaluated popularity in the current time frame while $X_1$ is evaluated when the current time frame is finished, i.e. in the future. The improved performance is displayed in the Figure \ref{fig:cache4}. Probably it is still possible to improve the performance by fine tuning the parameters. 
+To resolve this issue, we changed the scope of the value $X_1$. The desirable performance has been achieved using as true value the popularity evaluated at the end of the current timeslot (and not in the following one). We denote it as $X_1^{'}$. We would like to emphasize that the value $X_0$, which is passed as part of the input of the neural network, is not the same as $X_1^{'}$ since $X_0$ is the actual estimation of the popularity in the current time frame while $X_1^{'}$ is evaluated when the current time frame is finished, i.e. in the future. The improved performance is displayed in the Figure \ref{fig:cache4}. Probably it is still possible to improve the performance by fine tuning the parameters. 
 
 \begin{figure}[h!]
 	\centering
@@ -72,9 +72,9 @@ In Section \ref{pop_prediction_explained} we have shown that our NN-based cachin
 	\label{fig:cache5}
 \end{figure}
 
-The first step we decided to check is the required number of time windows. To establish this experiment, we have fixed the length of the time frame at the value of 200 seconds and tested three configurations: 1) 2 time frames (previous + current), 2) 4 time frames (3 previous + current) and 2) 10 time frames (9 previous + current). The results of the experiment can be seen in the Figure \ref{fig:cache5}. As seen in the figure, the 10-frame curve and 4-frame curve closely follow each other while 2-frame curve trails a little behind. From this, we can conclude that it is enough to use 4 time frames for popularity predictions and there is no point in increasing this number since the improvement in performance not present or negligible. There is also no point in decreasing the number of frames since the performance in terms of hit rate is decreased.
+The first step we decided to check is the required number of time windows. To establish this experiment, we have fixed the length of the time frame at the value of 200 seconds and tested three configurations: 1) 2 time frames (previous + current), 2) 4 time frames (3 previous + current) and 2) 10 time frames (9 previous + current). The results of the experiment can be seen in the Figure \ref{fig:cache5}. As seen in the figure, the 10-frame curve and 4-frame curve closely follow each other while 2-frame curve trails a little behind. From this, we can conclude that it is enough to use 4 time frames for popularity predictions and there is no point in increasing this number since the improvement in performance not present or negligible. There is also no point in decreasing the number of frames since the performance in terms of hit rate decreases.
 
-Following this, we have to determine the optimal way to select the length of the time frame. We have established an experiment trying to evaluate this value. We will fix the number of windows to be 4 and test different configurations of time window size with cache sizes:
+Then, we have to determine the optimal way to select the length of the time frame. We have established an experiment trying to evaluate this value. We have fixed the number of windows to be 4 and tested different configurations of time window size with cache sizes:
 
 \begin{itemize}
 	\item Time frame sizes: 3 s, 10 s, 50 s, 200 s, 1000 s.
@@ -120,35 +120,49 @@ We are not claiming that the proposed rule is the best way to select the size of
 	\label{fig:cache7}
 \end{figure}
 
-Examining the cumulative hit rate revealed that the time frame size of 200 seconds performed the best. But studying closely the immediate hit rate, i. e. evaluating the hit rate after each million of requests rather than the total hit rate, revealed some interesting behavior. Figure \ref{fig:cache7} shows the ratio between the best-performing policy modification and other modifications evaluating immediate hit rate as described before for both of the real traces and cache size of 200. The figure reveals that the best-performing cumulatively time frame size does not perform the best at each point in time of the traces. At some segments of the traces, the 50 second size performs the best, what could be expected since this size was very close to the best-performing in all tests, but at some segments the size of 10 seconds performed the best. Examining the segments of the traces on which the size of 10 seconds performed the best revealed that the rate of requests was very high which allowed the 10 second modification to estimate the popularity of the objects with high accuracy while being the fastest to adapt to the changes since it naturally follows from the smaller size of the time frame. Such behavior suggests that possibly it is better to reject the concept of time-based time frames and switch to request count-based time frames, i. e. the time frame will not span a fixed amount of time but a fixed number of requests. Such an approach should remove the dependence on the request rate of the request trace and could allow simplifying the parameter selection for the policy. But in the report, we will not touch such a modification and leave it for the future research.
+Examining the cumulative hit rate revealed that the time frame size of 200 seconds performed the best. But studying closely the immediate hit rate, i. e. evaluating the hit rate after each million of requests rather than the total hit rate, revealed some interesting behavior. Figure \ref{fig:cache7} shows the ratio between the best-performing policy modification and other modifications evaluating immediate hit rate as described before for both of the real traces and cache size of 200. The figure reveals that the best-performing cumulatively time frame size does not perform the best at each point in time of the traces. At some segments of the traces, the 50 second size performs the best, what could be expected since this size was very close to the best-performing in all tests. More importantly, during some periods the size of 10 seconds performed the best. A close look at the segments of the traces on which the size of 10 seconds performed the best revealed that the rate of requests was very high. Correspondingly, a 10 second modification would estimate the popularity of the objects with high accuracy while being the fastest to adapt to the changes since it naturally follows from the smaller size of the time frame. Such behavior suggests that possibly it is better to reject the concept of time-based time frames and switch to request based frames, i. e. the frame will not span a fixed amount of time but a fixed number of requests. Such an approach should remove the dependence on the request rate of the request trace and could allow simplifying the parameter selection for the policy. We have not tested such a modification and we leave it for future research.
 
-We also tried improving the quality of predictions made by the neural network by passing as input some metadata alongside with the popularity in previous time frames, in our case, they were the size of the object and the time of the day, but they did not improve the performance of the policy. However, the approach of adding metadata to the input of the neural network should not be discarded. It is possible that some other metadata could improve the quality of predictions and the performance of the caching policy as consequence but search for such metadata is left for future research.
+We also tried improving the quality of predictions made by the neural network by passing as input some metadata alongside with the popularity in previous time frames, in our case, they were the size of the object and the time of the day, but they did not improve the performance of the policy. However, the approach of adding metadata to the input of the neural network should not be discarded. It is possible that some other metadata could improve the quality of predictions and the performance of the caching policy as consequence. Investigation on which metadata may be useful is left for future research.
 
 \subsection{Computational and memory cost} \label{comp_mem_cost}
 
 Having figured out the optimal way for parameter selection, we can now evaluate the computational cost and memory footprint introduced by our solution. 
 
-We will start with the analysis of the memory footprint. In Section \ref{chosen_architecture} we have discussed the architecture of the neural network. We chose the architecture with 4 neurons in the input layer, this choice has been confirmed to be optimal in Section \ref{parameter_selection}, 2 hidden layers with 128 neurons in each and 1 neuron in the output layer. Adding to this an extra neuron to the input layer which takes the time fraction of the current time frame, discussed in Section \ref{nn_online}, and an extra bias neuron for each layer except the  output brings the total number of connections between layers to be:
-$$ 6 * 129 + 129 * 129 + 129 * 1 = 17544$$
-Assuming the connections are represented as double-precision floating point numbers, brings the total memory footprint of the neural network to be:
-$$ 17544 * 8 = 140352 \text{ bytes } \approx 140 \text{ kB } $$
-The policy also requires to keep track of popularity, i.e. number of requests, for each object. Assuming worst case scenario, each request in the time window is a unique object, using recommended parameters brings the total number of requests in a time frame to be around $180000 $. Counter for each item is assumed to consume 12 bytes, 8 bytes ID and 4 bytes counter itself. This gives a per-window memory footprint of:
-$$180000 * 12 = 2160000 \text{ bytes } = 2160 \text{ kB } $$
-Account\textsl{}ing for 4 to be recommended number of  windows, brings the total memory footprint for keeping track for content popularity to be:
-$$ 2160 * 4 = 8640 \text{ kB } $$
-Finally, to train the neural network the policy requires to keep training datasets for last 10 windows, as explained in section \ref{online_learning}. Each row of the dataset has 6 floating point numbers, amounting to 48 bytes per row. One request adds a row to the dataset, thus the memory footprint of keeping training datasets in memory:
-$$ 10 * 180000 * 48 = 86400000 \text{ bytes } = 86400 \text{ kB }$$
+We will start with the analysis by the memory footprint. Our policy is relying on a neural network. The memory footprint of the neural network is the memory footprint of its weights. Denoting the number of neurons in the input layer as $a$, in hidden layers as $b$, in the output layer as $c$, and number of hidden layers as $n$, and assuming the connections are represented as double-precision floating point numbers, brings the total memory footprint of the neural network to be:
+$$ (a * b + b^2 * (n - 1) + b * c) * 8 \text{ bytes } $$
+In Section \ref{chosen_architecture} we have discussed the architecture of the neural network. We chose the architecture with 4 neurons in the input layer, this choice has been confirmed to be optimal in Section \ref{parameter_selection}, 2 hidden layers with 128 neurons in each and 1 neuron in the output layer. Adding to this an extra neuron to the input layer which takes the time fraction of the current time frame, discussed in Section \ref{nn_online}, and an extra bias neuron for each layer except the output brings the total memory footprint of our neural network architecture to be:
+$$ (6 * 129 + 129^2 * (2 - 1) + 129 * 1) * 8 = 140352 \text{ bytes } \approx 140 \text{ kB } $$
+The policy also requires to keep track of popularity, i.e. number of requests, for each object. Assuming the worst case scenario, each request in the time window is a unique object. Counter for each item is assumed to consume 12 bytes, 8 bytes ID and 4 bytes counter itself. Denoting the average number of requests per window as $x$ and the number of windows for prediction as $y$, gives the total memory footprint of:
+$$ x * y * 12 \text{ bytes } $$
+Using recommended parameters brings the total number of requests in a time frame to be around $ 180000 $. Accounting for 4 to be recommended number of  windows, brings the total memory footprint for keeping track for content popularity to be:
+$$ 180000 * 4 * 12 = 8640000 \text{ bytes } = 8640 \text{ kB } $$
+Finally, to train the neural network the policy requires to keep training datasets for $k$ previous time frames, as explained in section \ref{online_learning}. This number can be regulated using parameters $\alpha$ and forget threshold. Each row of the dataset has $x + 2$ floating point numbers, amounting to $(x + 2) * 8$ bytes per row. One request adds a row to the dataset, thus the memory footprint of keeping training datasets in memory:
+$$ k * x * (x + 2) * 8 \text{ bytes } = 86400000 \text{ bytes } = 86400 \text{ kB }$$
+Again, using the recommended parameters:
+$$ 10 * 180000 * (4 + 2) * 8 = 86400000 \text{ bytes } = 86400 \text{ kB }$$
 Adding to this the requirement to maintain a priority queue, which consumes $16 * C$ bytes, brings the total memory footprint to be:
 $$ 140 \text{ kB } + 8640 \text{ kB } + 86400 \text{ kB } + 16 * C \text{ B } = 95180 \text{ kB } + 16 * C { B } $$
 This number can be further decreased by switching to single-precision floating point numbers. In this way, the contribution of the highest contributing member to the total footprint would be halved.
 
-Moving on with the calculation of the computational cost, we have proposed fixed values for each of the performance-influencing variables. Thus, only the size of the cache is the influencing factor to the time complexity. Cache size influences only the performance of the priority queue, thus, the time complexity is $ O(\log\,C) $, but with a much larger constant than in case of ARC or LRU. If we assume that the architecture of the neural network is also variable, we need to account for matrix multiplication involved in input propagation through the neural network. This adds roughly $ O(n^3) $ to the time complexity, where $n$ is the number of neurons in the largest layer of the network, bringing the total complexity to be $$ O(\log \, C + n^3) $$
+Moving on with the calculation of the computational cost, the first contributing member is the maintenance of the priority queue with time complexity of $ O(\log\,C) $. The second contributing member is the complexity introduced by the neural network. Propagation of the input from one layer of the network to another has a complexity of $ O(m*l) $ where $m \text{ and } l$ are number of neurons in these layers. Using previously established notation, one full propagation through a neural network gives the complexity of $ O(a*b + (n-1)*b + b*c)$. In Section \ref{architecture} we discussed the requirement to update the popularity for a few objects at each cache hit, let's denote this number as $l$. Since each update requires the propagation through the neural network and accounting for previously discussed complexity of priority queue gives the total time complexity of our proposed approach to be: $$ O(l * (\log \, C + a*b + (n-1)*b + b*c)) $$
+
+%Moving on with the calculation of the computational cost, we have proposed fixed values for each of the performance-influencing variables. Thus, only the size of the cache is the influencing factor to the time complexity. Cache size influences only the performance of the priority queue, thus, the time complexity is $ O(\log\,C) $, but with a much larger constant than in case of ARC or LRU. If we assume that the architecture of the neural network is also variable, we need to account for matrix multiplication involved in input propagation through the neural network. This adds roughly $ O(n^3) $ to the time complexity, where $n$ is the number of neurons in the largest layer of the network, bringing the total complexity to be $$  $$
 
 \subsection{Comparison with other proposed solutions} \label{comparison}
 
 \begin{figure}[b!]
 	\centering
 	\captionsetup{justification=centering}
+	
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/dlstm_cum1.png}
+		\caption{\% of cumulative hit rate.}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\linewidth}
+		\includegraphics[width=\linewidth]{pics/dlstm_i1.png}
+		\caption{\% of immediate hit rate.}
+	\end{subfigure}
+	
 	\begin{subfigure}[b]{0.49\linewidth}
 		\includegraphics[width=\linewidth]{pics/dlstm_cum.png}
 		\caption{\% of cumulative hit rate.}
@@ -157,6 +171,7 @@ Moving on with the calculation of the computational cost, we have proposed fixed
 		\includegraphics[width=\linewidth]{pics/dlstm_i.png}
 		\caption{\% of immediate hit rate.}
 	\end{subfigure}
+
 	\caption{Comparison of performance of DLSTM policy with other policies on 5-day trace.}
 	\label{fig:dlstm}
 \end{figure}
