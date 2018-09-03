@@ -129,7 +129,8 @@ class FeedforwardNNCacheFullTorch(AbstractCache):
                 prediction_row.append(metadata["daytime"])
 
         if self.__trained_net is None:
-            self.__trained_net = TorchFeedforwardNN([len(prediction_row), 128, 128, 1], "l_relu", "l_relu")
+            # self.__trained_net = TorchFeedforwardNN([len(prediction_row), 128, 128, 1], "l_relu", "l_relu")
+            self.__trained_net = TorchFeedforwardNN([len(prediction_row), 128, 128, 1], None, None) # adding linear predictor test
 
         # np_matr = np.matrix([prediction_row])
         matr = torch.tensor([prediction_row])
