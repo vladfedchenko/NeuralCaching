@@ -111,7 +111,7 @@ def main():
                                                   float(desc["time_window"]),
                                                   int(desc["update_sample_size"]))
 
-                if args.cache_type == "lstm":
+                elif args.cache_type == "lstm":
 
                     if not args.force_cpu and torch.cuda.is_available():
                         print("Running on: GPU")
@@ -145,7 +145,7 @@ def main():
                     cache = ARCache(cur_size)
 
                 else:
-                    raise Exception("Unidentified cache type")
+                    raise Exception("Unidentified cache type: {0}".format(args.cache_type))
 
                 hit_rate = eval_cache_hit(cache,
                                           args.input,
